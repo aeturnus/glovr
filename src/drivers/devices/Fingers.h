@@ -24,8 +24,8 @@ typedef enum Finger_ID_enum
 typedef struct Fingers_str
 {
   uint32_t  timestamp;
-  int8_t    flexion[5];
-  int8_t    abduction[1];
+  int8_t    flexion[5];   // All 5 fingers have flexion sensors
+  int8_t    abduction[1]; // Only the thumb has an abduction sensor
 } Fingers;
 
 /**
