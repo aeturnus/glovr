@@ -483,6 +483,11 @@
               <FileType>1</FileType>
               <FilePath>.\src\drivers\I2C0.c</FilePath>
             </File>
+            <File>
+              <FileName>SysTick.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\drivers\SysTick.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>
@@ -963,6 +968,11 @@
               <FileName>I2C0.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\drivers\I2C0.c</FilePath>
+            </File>
+            <File>
+              <FileName>SysTick.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\drivers\SysTick.c</FilePath>
             </File>
           </Files>
         </Group>
