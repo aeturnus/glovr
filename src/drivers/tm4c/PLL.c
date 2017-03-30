@@ -23,7 +23,7 @@
  
 #include <stdint.h>
 #include <tm4c123gh6pm.h>
-#include <drivers/PLL.h>
+#include <drivers/tm4c/PLL.h>
 
 
 // The #define statement SYSDIV2 in PLL.h

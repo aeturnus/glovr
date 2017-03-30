@@ -471,22 +471,22 @@
             <File>
               <FileName>UART.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\src\drivers\UART.c</FilePath>
+              <FilePath>.\src\drivers\tm4c\UART.c</FilePath>
             </File>
             <File>
               <FileName>PLL.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\src\drivers\PLL.c</FilePath>
+              <FilePath>.\src\drivers\tm4c\PLL.c</FilePath>
             </File>
             <File>
               <FileName>I2C.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\src\drivers\I2C.c</FilePath>
+              <FilePath>.\src\drivers\tm4c\I2C.c</FilePath>
             </File>
             <File>
               <FileName>SysTick.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\src\drivers\SysTick.c</FilePath>
+              <FilePath>.\src\drivers\tm4c\SysTick.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -496,7 +496,7 @@
             <File>
               <FileName>ST7735.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\src\devices\ST7735.c</FilePath>
+              <FilePath>.\src\drivers\devices\ST7735.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -967,22 +967,22 @@
             <File>
               <FileName>UART.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\src\drivers\UART.c</FilePath>
+              <FilePath>.\src\drivers\tm4c\UART.c</FilePath>
             </File>
             <File>
               <FileName>PLL.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\src\drivers\PLL.c</FilePath>
+              <FilePath>.\src\drivers\tm4c\PLL.c</FilePath>
             </File>
             <File>
               <FileName>I2C.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\src\drivers\I2C.c</FilePath>
+              <FilePath>.\src\drivers\tm4c\I2C.c</FilePath>
             </File>
             <File>
               <FileName>SysTick.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\src\drivers\SysTick.c</FilePath>
+              <FilePath>.\src\drivers\tm4c\SysTick.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -992,7 +992,7 @@
             <File>
               <FileName>ST7735.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\src\devices\ST7735.c</FilePath>
+              <FilePath>.\src\drivers\devices\ST7735.c</FilePath>
             </File>
           </Files>
         </Group>

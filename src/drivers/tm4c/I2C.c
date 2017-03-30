@@ -1,7 +1,8 @@
 #include <stdint.h>
 #include <tm4c123gh6pm.h>
-#include <drivers/I2C.h>
+#include <drivers/tm4c/I2C.h>
 
+/*
 #define I2C_MCS_ACK             0x08  // Data Acknowledge Enable
 #define I2C_MCS_DATACK          0x08  // Acknowledge Data
 #define I2C_MCS_ADRACK          0x04  // Acknowledge Address
@@ -11,6 +12,7 @@
 #define I2C_MCS_RUN             0x01  // I2C Master Enable
 #define I2C_MCS_BUSY            0x01  // I2C Busy
 #define I2C_MCR_MFE             0x10  // I2C Master Function Enable
+*/
 
 #define MAXRETRIES              5           // number of receive attempts before giving up
 void I2C_Init(void){

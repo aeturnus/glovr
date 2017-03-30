@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 #include <tm4c123gh6pm.h>
-#include <drivers/UART.h>
+#include <drivers/tm4c/UART.h>
 
 #define UART_FR_TXFE            0x00000080  // UART Transmit FIFO Empty
 #define UART_FR_RXFF            0x00000040  // UART RXFF FIFO Full

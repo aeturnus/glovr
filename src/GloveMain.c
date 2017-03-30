@@ -1,7 +1,7 @@
 #include <string.h>
 
-#include <drivers/UART.h>
-#include <drivers/PLL.h>
+#include <drivers/tm4c/UART.h>
+#include <drivers/tm4c/PLL.h>
 
 int main(void)
 {

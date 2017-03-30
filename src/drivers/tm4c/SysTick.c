@@ -1,7 +1,7 @@
 //Brandon Nguyen
 
 #include <stdint.h>
-#include <drivers/SysTick.h>
+#include <drivers/tm4c/SysTick.h>
 #include <tm4c123gh6pm.h>
 
 static void (*SysTick_Task)(void);
