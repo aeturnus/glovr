@@ -1,0 +1,17 @@
+*.o
+!*/texas.o
+*.d
+*.crf
+*.lst
+*.bak
+*.dep
+*.map
+*.lnp
+*.htm
+*.axf
+*.uvopt
+*.uvgui
+*.uvgui.*
+*.plg
+*.tra
+lab5/music/
