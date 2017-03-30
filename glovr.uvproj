@@ -479,14 +479,24 @@
               <FilePath>.\src\drivers\PLL.c</FilePath>
             </File>
             <File>
-              <FileName>I2C0.c</FileName>
+              <FileName>I2C.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\src\drivers\I2C0.c</FilePath>
+              <FilePath>.\src\drivers\I2C.c</FilePath>
             </File>
             <File>
               <FileName>SysTick.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\drivers\SysTick.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Devices</GroupName>
+          <Files>
+            <File>
+              <FileName>ST7735.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\devices\ST7735.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -965,14 +975,24 @@
               <FilePath>.\src\drivers\PLL.c</FilePath>
             </File>
             <File>
-              <FileName>I2C0.c</FileName>
+              <FileName>I2C.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\src\drivers\I2C0.c</FilePath>
+              <FilePath>.\src\drivers\I2C.c</FilePath>
             </File>
             <File>
               <FileName>SysTick.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\drivers\SysTick.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Devices</GroupName>
+          <Files>
+            <File>
+              <FileName>ST7735.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\devices\ST7735.c</FilePath>
             </File>
           </Files>
         </Group>
