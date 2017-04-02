@@ -26,25 +26,31 @@ void I2C_Init(void){
                                         // 6) configure PD0,1 as I2C
   GPIO_PORTD_PCTL_R = (GPIO_PORTD_PCTL_R&0xFFFFFF00)+0x00000033;
   GPIO_PORTD_AMSEL_R &= ~0x03;          // 7) disable analog functionality on PB2,3
-  I2C0_MCR_R = I2C_MCR_MFE;             // 8) master function enable
-  I2C0_MTPR_R = 8;                      // 9) configure for 400 kbps clock
+  I2C3_MCR_R = I2C_MCR_MFE;             // 8) master function enable
+  I2C3_MTPR_R = 8;                      // 9) configure for 400 kbps clock
 }
 
 int I2C_ReadReg(int8_t slave, int8_t addr, int length, uint8_t * buffer)
 {
-  return 0;
+  int ret = I2C_Send(slave, 1, &addr);
+  if(ret)
+    return ret;
+  return I2C_Recv(slave, length, buffer);
 }
 
 int I2C_WriteReg(int8_t slave, int8_t addr, int length, const uint8_t * buffer)
 {
-  return 0;
+  int ret = I2C_Send(slave, 1, &addr);
+  if(ret)
+    return ret;
+  return I2C_Send(slave, length, buffer);
 }
 
 static inline uint8_t I2C_RecvByte(uint32_t flags)
 {
-  I2C0_MCS_R = flags;
-  while(I2C0_MCS_R&I2C_MCS_BUSY){};   // wait for transmission done
-  return (I2C0_MDR_R&0xFF);
+  I2C3_MCS_R = flags;
+  while(I2C3_MCS_R&I2C_MCS_BUSY){};   // wait for transmission done
+  return (I2C3_MDR_R&0xFF);
 }
 
 int I2C_Recv(int8_t slave, int length, uint8_t * buffer)
@@ -55,9 +61,9 @@ int I2C_Recv(int8_t slave, int length, uint8_t * buffer)
     int i = 0;
 
     // sendoff the slave address
-    while(I2C0_MCS_R&I2C_MCS_BUSY){}; // wait for I2C ready
-    I2C0_MSA_R = (slave<<1)&0xFE;     // MSA[7:1] is slave address
-    I2C0_MSA_R |= 0x01;               // MSA[0] is 1 for recv
+    while(I2C3_MCS_R&I2C_MCS_BUSY){}; // wait for I2C ready
+    I2C3_MSA_R = (slave<<1)&0xFE;     // MSA[7:1] is slave address
+    I2C3_MSA_R |= 0x01;               // MSA[0] is 1 for recv
 
     if(length == 1)
     {
@@ -76,25 +82,25 @@ int I2C_Recv(int8_t slave, int length, uint8_t * buffer)
     }
     retryCounter = retryCounter + 1;
   }                                         
-  while(((I2C0_MCS_R&(I2C_MCS_ADRACK|I2C_MCS_ERROR)) != 0) && (retryCounter <= MAXRETRIES));
+  while(((I2C3_MCS_R&(I2C_MCS_ADRACK|I2C_MCS_ERROR)) != 0) && (retryCounter <= MAXRETRIES));
   // repeat if error
   
-  return I2C0_MCS_R&(I2C_MCS_ADRACK|I2C_MCS_ERROR); // return I2C errors
+  return I2C3_MCS_R&(I2C_MCS_ADRACK|I2C_MCS_ERROR); // return I2C errors
 }}
 
 // x is unused
 #define I2C_CheckSendError(x) \
-  if((I2C0_MCS_R&(I2C_MCS_DATACK|I2C_MCS_ADRACK|I2C_MCS_ERROR)) != 0)   \
+  if((I2C3_MCS_R&(I2C_MCS_DATACK|I2C_MCS_ADRACK|I2C_MCS_ERROR)) != 0)   \
   {                                                                     \
-    I2C0_MCS_R = I2C_MCS_STOP;                                           \
-    return (I2C0_MCS_R&(I2C_MCS_DATACK|I2C_MCS_ADRACK|I2C_MCS_ERROR));  \
+    I2C3_MCS_R = I2C_MCS_STOP;                                           \
+    return (I2C3_MCS_R&(I2C_MCS_DATACK|I2C_MCS_ADRACK|I2C_MCS_ERROR));  \
   }
 
 static inline void I2C_SendByte(uint8_t data, uint32_t flags)
 {
-    I2C0_MCS_R = flags;
-    I2C0_MDR_R = data;
-    while(I2C0_MCS_R&I2C_MCS_BUSY){};   // wait for transmission done
+    I2C3_MCS_R = flags;
+    I2C3_MDR_R = data;
+    while(I2C3_MCS_R&I2C_MCS_BUSY){};   // wait for transmission done
 }
 
 int I2C_Send(int8_t slave, int length, const uint8_t * buffer)
@@ -104,9 +110,9 @@ int I2C_Send(int8_t slave, int length, const uint8_t * buffer)
   int i = 0;
 
   // sendoff the slave address
-  while(I2C0_MCS_R&I2C_MCS_BUSY){}; // wait for I2C ready
-  I2C0_MSA_R = (slave<<1)&0xFE;     // MSA[7:1] is slave address
-  I2C0_MSA_R &= ~0x01;              // MSA[0] is 0 for send
+  while(I2C3_MCS_R&I2C_MCS_BUSY){}; // wait for I2C ready
+  I2C3_MSA_R = (slave<<1)&0xFE;     // MSA[7:1] is slave address
+  I2C3_MSA_R &= ~0x01;              // MSA[0] is 0 for send
   
   if(length == 1)
   {
