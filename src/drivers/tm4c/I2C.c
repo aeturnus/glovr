@@ -42,6 +42,50 @@ int I2C_WriteReg(int8_t slave, int8_t addr, int length, const uint8_t * buffer)
 
 int I2C_Recv(int8_t slave, int length, uint8_t * buffer)
 {
+  int retryCounter = 1;
+  
+  do{
+    int i = 0;
+
+    // sendoff the address
+    while(I2C0_MCS_R&I2C_MCS_BUSY){}; // wait for I2C ready
+    I2C0_MSA_R = (slave<<1)&0xFE;     // MSA[7:1] is slave address
+    I2C0_MSA_R |= 0x01;               // MSA[0] is 1 for recv
+    
+    if(length == 1)
+    {
+      I2C0_MCS_R = ( I2C_MCS_STOP | I2C_MCS_START | I2C_MCS_RUN );
+      
+      while(I2C0_MCS_R&I2C_MCS_BUSY){};   // wait for transmission done
+      buffer[i] = (I2C0_MDR_R&0xFF);
+    }
+    else
+    {
+      I2C0_MCS_R = ( I2C_MCS_ACK | I2C_MCS_START | I2C_MCS_RUN );
+
+      while(I2C0_MCS_R&I2C_MCS_BUSY){};   // wait for transmission done
+      buffer[i] = (I2C0_MDR_R&0xFF);      // LSB data sent last
+      i++;
+
+      while(--length > 1) // pre-decrement to handle the first transmission
+      {
+        I2C0_MCS_R = ( I2C_MCS_ACK | I2C_MCS_RUN );
+        
+        while(I2C0_MCS_R&I2C_MCS_BUSY){}; // wait for transmission done
+        buffer[i] = (I2C0_MDR_R&0xFF);    // LSB data sent last
+        i++;
+      }
+      
+      I2C0_MCS_R = ( I2C_MCS_STOP | I2C_MCS_RUN );
+      
+      while(I2C0_MCS_R&I2C_MCS_BUSY){}; // wait for transmission done
+      buffer[i] = (I2C0_MDR_R&0xFF);
+    }
+    retryCounter = retryCounter + 1;
+  }                                         
+  while(((I2C0_MCS_R&(I2C_MCS_ADRACK|I2C_MCS_ERROR)) != 0) && (retryCounter <= MAXRETRIES));
+  // repeat if error
+  
   return 0;
 }
 
