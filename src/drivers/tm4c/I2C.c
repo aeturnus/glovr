@@ -40,7 +40,13 @@ int I2C_WriteReg(int8_t slave, int8_t addr, int length, const uint8_t * buffer)
   return 0;
 }
 
-// TODO: FIX THIS
+static inline uint8_t I2C_RecvByte(uint32_t flags)
+{
+  I2C0_MCS_R = flags;
+  while(I2C0_MCS_R&I2C_MCS_BUSY){};   // wait for transmission done
+  return (I2C0_MDR_R&0xFF);
+}
+
 int I2C_Recv(int8_t slave, int length, uint8_t * buffer)
 {
   int retryCounter = 1;
@@ -52,35 +58,21 @@ int I2C_Recv(int8_t slave, int length, uint8_t * buffer)
     while(I2C0_MCS_R&I2C_MCS_BUSY){}; // wait for I2C ready
     I2C0_MSA_R = (slave<<1)&0xFE;     // MSA[7:1] is slave address
     I2C0_MSA_R |= 0x01;               // MSA[0] is 1 for recv
-    
+
     if(length == 1)
     {
-      I2C0_MCS_R = ( I2C_MCS_STOP | I2C_MCS_START | I2C_MCS_RUN );
-      
-      while(I2C0_MCS_R&I2C_MCS_BUSY){};   // wait for transmission done
-      buffer[i] = (I2C0_MDR_R&0xFF);
+      buffer[i] = I2C_RecvByte(I2C_MCS_STOP | I2C_MCS_START | I2C_MCS_RUN);
     }
     else
     {
-      I2C0_MCS_R = ( I2C_MCS_ACK | I2C_MCS_START | I2C_MCS_RUN );
-
-      while(I2C0_MCS_R&I2C_MCS_BUSY){};   // wait for transmission done
-      buffer[i] = (I2C0_MDR_R&0xFF);      // LSB data sent last
-      i++;
+      buffer[i++] = I2C_RecvByte(I2C_MCS_ACK | I2C_MCS_START | I2C_MCS_RUN);
 
       while(--length > 1) // pre-decrement to handle the first transmission
       {
-        I2C0_MCS_R = ( I2C_MCS_ACK | I2C_MCS_RUN );
-        
-        while(I2C0_MCS_R&I2C_MCS_BUSY){}; // wait for transmission done
-        buffer[i] = (I2C0_MDR_R&0xFF);    // LSB data sent last
-        i++;
+        buffer[i++] = I2C_RecvByte(I2C_MCS_ACK | I2C_MCS_RUN);
       }
       
-      I2C0_MCS_R = ( I2C_MCS_STOP | I2C_MCS_RUN );
-      
-      while(I2C0_MCS_R&I2C_MCS_BUSY){}; // wait for transmission done
-      buffer[i] = (I2C0_MDR_R&0xFF);
+      buffer[i] = I2C_RecvByte(I2C_MCS_STOP | I2C_MCS_RUN);
     }
     retryCounter = retryCounter + 1;
   }                                         
@@ -88,7 +80,7 @@ int I2C_Recv(int8_t slave, int length, uint8_t * buffer)
   // repeat if error
   
   return I2C0_MCS_R&(I2C_MCS_ADRACK|I2C_MCS_ERROR); // return I2C errors
-}
+}}
 
 // x is unused
 #define I2C_CheckSendError(x) \
