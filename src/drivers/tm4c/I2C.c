@@ -40,6 +40,7 @@ int I2C_WriteReg(int8_t slave, int8_t addr, int length, const uint8_t * buffer)
   return 0;
 }
 
+// TODO: FIX THIS
 int I2C_Recv(int8_t slave, int length, uint8_t * buffer)
 {
   int retryCounter = 1;
@@ -47,7 +48,7 @@ int I2C_Recv(int8_t slave, int length, uint8_t * buffer)
   do{
     int i = 0;
 
-    // sendoff the address
+    // sendoff the slave address
     while(I2C0_MCS_R&I2C_MCS_BUSY){}; // wait for I2C ready
     I2C0_MSA_R = (slave<<1)&0xFE;     // MSA[7:1] is slave address
     I2C0_MSA_R |= 0x01;               // MSA[0] is 1 for recv
@@ -86,10 +87,56 @@ int I2C_Recv(int8_t slave, int length, uint8_t * buffer)
   while(((I2C0_MCS_R&(I2C_MCS_ADRACK|I2C_MCS_ERROR)) != 0) && (retryCounter <= MAXRETRIES));
   // repeat if error
   
-  return 0;
+  return I2C0_MCS_R&(I2C_MCS_ADRACK|I2C_MCS_ERROR); // return I2C errors
+}
+
+// x is unused
+#define I2C_CheckSendError(x) \
+  if((I2C0_MCS_R&(I2C_MCS_DATACK|I2C_MCS_ADRACK|I2C_MCS_ERROR)) != 0)   \
+  {                                                                     \
+    I2C0_MCS_R = I2C_MCS_STOP;                                           \
+    return (I2C0_MCS_R&(I2C_MCS_DATACK|I2C_MCS_ADRACK|I2C_MCS_ERROR));  \
+  }
+
+static inline void I2C_SendByte(uint8_t data, uint32_t flags)
+{
+    I2C0_MCS_R = flags;
+    I2C0_MDR_R = data;
+    while(I2C0_MCS_R&I2C_MCS_BUSY){};   // wait for transmission done
 }
 
 int I2C_Send(int8_t slave, int length, const uint8_t * buffer)
 {
-  return 0;
+  int retryCounter = 1;
+  
+  int i = 0;
+
+  // sendoff the slave address
+  while(I2C0_MCS_R&I2C_MCS_BUSY){}; // wait for I2C ready
+  I2C0_MSA_R = (slave<<1)&0xFE;     // MSA[7:1] is slave address
+  I2C0_MSA_R &= ~0x01;              // MSA[0] is 0 for send
+  
+  if(length == 1)
+  {
+    I2C_SendByte(buffer[i], I2C_MCS_STOP | I2C_MCS_START | I2C_MCS_RUN );
+    I2C_CheckSendError();
+  }
+  else
+  {
+    I2C_SendByte(buffer[i], I2C_MCS_START | I2C_MCS_RUN );
+    I2C_CheckSendError();
+    i++;
+
+    while(--length > 1) // pre-decrement to handle the first transmission
+    {
+      I2C_SendByte(buffer[i], I2C_MCS_START | I2C_MCS_RUN );
+      I2C_CheckSendError();
+      i++;
+    }
+    
+    I2C_SendByte(buffer[i], I2C_MCS_STOP | I2C_MCS_RUN );
+    I2C_CheckSendError();
+  }
 }
+
+#undef I2C_CheckSendError
