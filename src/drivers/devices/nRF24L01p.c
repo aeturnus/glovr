@@ -225,7 +225,7 @@ static inline void reg_readn(uint8_t addr, int n, uint8_t * buffer)
   uint8_t status = ssi_recv();  // peel off the status
   while(n-- > 0)
   {
-    *buffer++ = ssi_recv();
+    *(buffer++) = ssi_recv();
   }
 }
 
@@ -236,6 +236,17 @@ static inline void reg_write(uint8_t addr, uint8_t data)
   ssi_send(data);
 }
 
+// precondition: length <= 32
+static inline uint8_t payload_send(int length, const uint8_t * data)
+{
+  command_send(NRF_W_TX_PAYLOAD_C);
+  while(length-- > 0)
+  {
+    ssi_send(*(data++);
+  }
+  command_send(NRF_NOP_C);
+  return ssi_recv();
+}
 
 void nRF24L01p_Init(void)
 {
@@ -254,7 +265,17 @@ void nRF24L01p_SetRX(void)
 
 void nRF24L01p_Send(int length, const uint8_t * buffer)
 {
-
+  if(length==0)
+    return;
+  
+  int payloads = (length-1)/32+1;
+  for(int payload = 0; i < payloads-1; payload++)
+  {
+    payload_send(32,buffer);
+    buffer += 32;
+    length -= 32;
+  }
+  payload_send(length,buffer);
 }
 
 void nRF24L01p_Recv(int length, const uint8_t * buffer)
