@@ -145,28 +145,47 @@ static inline uint8_t ssi_recv(void)
   return val;
 }
 
-static inline void set_ce(int x)
-{
-  NRF_CE = (x<<1);
-}
-
 static inline int get_ce(void)
 {
   return (NRF_CE>>1)&0x1;
 }
 
-static inline void set_csn(int x)
+
+static inline int set_ce(int x)
 {
-  NRF_CSN = (x<<2);
+  int old = get_ce();
+  NRF_CE = (x<<1);
+  return old;
 }
+
 
 static inline int get_csn(void)
 {
   return (NRF_CSN>>1)&0x1;
 }
 
+
+static inline void set_csn(int x)
+{
+  int old = get_csn();
+  NRF_CSN = (x<<2);
+  return old;
+}
+
+
 // above is the MCU specific code
 // below is the generic interface
+
+static inline int disable(void)
+{
+  return set_ce(0);
+}
+
+static inline int enable(void)
+{
+  return set_ce(1);
+}
+
 static inline int reg_read(int addr)
 {
   // TODO
