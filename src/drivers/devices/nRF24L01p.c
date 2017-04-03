@@ -4,6 +4,99 @@
 
 #include <drivers/devices/nRF24L01p.h>
 
+// Register mapping
+#define NRF_CONFIG_A    0x00
+  #define NRF_CONFIG_MASK_RX_DR   0x40
+  #define NRF_CONFIG_MASK_TX_DS   0x20
+  #define NRF_CONFIG_MASK_MAX_RT  0x10
+  #define NRF_CONFIG_EN_CRC       0x08
+  #define NRF_CONFIG_CRC0         0x04
+  #define NRF_CONFIG_PWR_UP       0x02
+  #define NRF_CONFIG_PRIM_RX      0x01
+
+#define NRF_EN_AA_A     0x01
+  #define NRF_EN_AA_PIPE(n) (1<<n)
+
+#define NRF_EN_RXADDR_A 0x02
+  #define NRF_EN_RXADDR_ERX_PIPE(n) (1<<n)
+
+#define NRF_SETUP_AW_A  0x03
+  #define NRF_SETUP_AW_ILLEGAL  0x0
+  #define NRF_SETUP_AW_3        0x1
+  #define NRF_SETUP_AW_4        0x2
+  #define NRF_SETUP_AW_5        0x3
+
+#define NRF_SETUP_RETR_A  0x04
+  // gets the bits for delay: provide uS in 250 uS increments
+  #define NRF_SETUP_RETR_ARD(x) (((x-250)/250)<<4)
+  #define NRF_SETUP_RETR_ARC(x) (x&0xF)
+
+#define NRF_RF_CH_A     0x05
+
+#define NRF_RF_SETUP_A  0x06
+  #define NRF_RF_SETUP_CONT_WAVE  0x80
+  #define NRF_RF_SETUP_RF_DR_LOW  0x20
+  #define NRF_RF_SETUP_PLL_LOCK   0x10
+  #define NRF_RF_SETUP_RF_DR_HIGH 0x08
+  #define NRF_RF_SETUP_RF_PWR     0x06
+    #define NRF_RF_SETUP_RF_PWR_18dBm (0x0<1)
+    #define NRF_RF_SETUP_RF_PWR_12dBm (0x1<1)
+    #define NRF_RF_SETUP_RF_PWR_6dBm  (0x2<1)
+    #define NRF_RF_SETUP_RF_PWR_0dBm  (0x3<1)
+
+#define NRF_RF_STATUS_A 0x07
+  #define NRF_RF_STATUS_RX_DR   0x40
+  #define NRF_RF_STATUS_TX_DS   0x20
+  #define NRF_RF_STATUS_MAX_RT  0x10
+  #define NRF_RF_STATUS_RX_P_NO 0x0E
+    #define NRF_RF_STATUS_PX_P_NO_RX_FIFO_EMPTY 0x7
+  #define NRF_RF_STATUS_TX_FULL 0x01
+
+#define NRF_OBSERVE_TX_A  0x08
+
+#define NRF_RPD_A       0x09
+  #define NRF_RPD       0x01
+
+#define NRF_RX_ADDR_BASE_A    0x0A
+#define NRF_RX_ADDR_PX(x)_A  (NRF_RX_ADDR_BASE+x)
+#define NRF_RX_ADDR_P0_A  0x0A
+#define NRF_RX_ADDR_P1_A  0x0B
+#define NRF_RX_ADDR_P2_A  0x0C
+#define NRF_RX_ADDR_P3_A  0x0D
+#define NRF_RX_ADDR_P4_A  0x0E
+#define NRF_RX_ADDR_P5_A  0x0F
+
+#define NRF_TX_ADDR     0x10
+
+#define NRF_RX_PW_BASE_A  0x11
+#define NRF_PW_PW_PX_A(x)  (NRF_RX_PW_BASE+x)
+#define NRF_RX_PW_P0_A  0x11
+#define NRF_RX_PW_P1_A  0x12
+#define NRF_RX_PW_P2_A  0x13
+#define NRF_RX_PW_P3_A  0x14
+#define NRF_RX_PW_P4_A  0x15
+#define NRF_RX_PW_P5_A  0x16
+
+#define NRF_FIFO_STATUS_A 0x17
+  #define NRF_FIFO_STATUS_TX_REUSE 0x40
+  #define NRF_FIFO_STATUS_TX_FULL  0x20
+  #define NRF_FIFO_STATUS_TX_EMPTY 0x10
+  #define NRF_FIFO_STATUS_RX_FULL  0x02
+  #define NRF_FIFO_STATUS_RX_EMPTY 0x01
+
+#define NRF_DYNPD_A     0x1C
+  #define NRF_NYNPD_P(n)  (1<<n)
+  #define NRF_NYNPD_P5  0x20
+  #define NRF_NYNPD_P4  0x10
+  #define NRF_NYNPD_P3  0x08
+  #define NRF_NYNPD_P2  0x04
+  #define NRF_NYNPD_P1  0x02
+  #define NRF_NYNPD_P0  0x01
+
+#define NRF_FEATURE_A   0x1D
+  #define NRF_FEATURE_EN_DPL      0x4
+  #define NRF_FEATURE_EN_ACK_PAY  0x2
+  #define NRF_FEATURE_EN_DYN_PAY  0x1
 
 /* PB2 => CE
  * PB3 => CSN
