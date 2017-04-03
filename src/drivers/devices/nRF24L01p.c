@@ -102,7 +102,10 @@
  * PB3 => CSN
  * PB5 => IRQ
  */
-void nRF24L01p_Init(void)
+// bit specific addresses for the ports
+#define NRF_CE  (GPIO_PORTB_DATA_BITS_R | 0x10)
+#define NRF_CSN (GPIO_PORTB_DATA_BITS_R | 0x20)
+static inline void port_init(void)
 {
   SYSCTL_RCGCGPIO_R |= 0x02;  // turn on PB
   SYSCTL_RCGCSSI_R  |= 0x04;  // turn on SSI2
@@ -114,7 +117,8 @@ void nRF24L01p_Init(void)
   // enable SSI2 on 7,6,4 GPIO on the others
   GPIO_PORTB_PCTL_R   = (GPIO_PORTD_PCTL_R&0x000000FF) | 0x22020000;
 
-  // need to initialize GPIO for PB
+  // need to initialize tranceiver IRQ (active low) detection
+  // TODO: setupt falling edge interrupt on Port B
 
 
   // need to initialize SSI2
@@ -124,6 +128,58 @@ void nRF24L01p_Init(void)
   SSI2_CR0_R |= 0x07; // DSS=8-bit data
   SSI2_DR_R = 0;      // push a zero out at the beginning
   SSI2_CR1_R |= 0x02; // enable SSI woo!
+}
+
+// synchronously send a byte, blocks
+static inline void ssi_send(uint8_t data)
+{
+  while(!(SSI2_SR_R & SSI2_TNF)){}  // wait until TX has an opening
+  SSI2_DR_R = (data&0xFF);
+}
+
+// synchronously recv a byte, blocks
+static inline uint8_t ssi_recv(void)
+{
+  while(!(SSI2_SR_R & SSI2_RNE)){}  // wait until RX has something
+  uint8_t val = SSI2_DR_R & 0xFF;
+  return val;
+}
+
+static inline void set_ce(int x)
+{
+  NRF_CE = (x<<1);
+}
+
+static inline int get_ce(void)
+{
+  return (NRF_CE>>1)&0x1;
+}
+
+static inline void set_csn(int x)
+{
+  NRF_CSN = (x<<2);
+}
+
+static inline int get_csn(void)
+{
+  return (NRF_CSN>>1)&0x1;
+}
+
+// above is the MCU specific code
+// below is the generic interface
+static inline int reg_read(int addr)
+{
+  // TODO
+}
+
+static inline void reg_write(int addr, int data)
+{
+  // TODO
+}
+
+void nRF24L01p_Init(void)
+{
+  nRF24L01p_PortInit(void);
 }
 
 void nRF24L01p_SetTX(void)
