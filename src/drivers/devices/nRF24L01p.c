@@ -2,13 +2,14 @@
 
 #include <tm4c123gh6pm.h>
 
-#include <drivers/devices/nRF24L01.h>
+#include <drivers/devices/nRF24L01p.h>
+
 
 /* PB2 => CE
  * PB3 => CSN
  * PB5 => IRQ
  */
-void NRF24L01_Init(void)
+void nRF24L01p_Init(void)
 {
   SYSCTL_RCGCGPIO_R |= 0x02;  // turn on PB
   SYSCTL_RCGCSSI_R  |= 0x04;  // turn on SSI2
@@ -32,32 +33,32 @@ void NRF24L01_Init(void)
   SSI2_CR1_R |= 0x02; // enable SSI woo!
 }
 
-void NRF24L01_SetTX(void)
+void nRF24L01p_SetTX(void)
 {
 
 }
 
-void NRF24L01_SetRX(void)
+void nRF24L01p_SetRX(void)
 {
 
 }
 
-void NRF24L01_Send(int length, const uint8_t * buffer)
+void nRF24L01p_Send(int length, const uint8_t * buffer)
 {
 
 }
 
-void NRF24L01_Recv(int length, const uint8_t * buffer)
+void nRF24L01p_Recv(int length, const uint8_t * buffer)
 {
 
 }
 
-void NRF24L01_RegisterRXHandler(void (* handlerRX)(void))
+void nRF24L01p_RegisterRXHandler(void (* handlerRX)(void))
 {
 
 }
 
-void NRF24L01_UnregisterRXHandler(void)
+void nRF24L01p_UnregisterRXHandler(void)
 {
 
 }
