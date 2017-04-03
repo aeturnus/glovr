@@ -98,13 +98,31 @@
   #define NRF_FEATURE_EN_ACK_PAY  0x2
   #define NRF_FEATURE_EN_DYN_PAY  0x1
 
+// Commands
+// Note that STATUS comes back everytime
+// balance register reads with with
+// an in initial read to pull out the STATUS
+#define NRF_R_REGISTER_C        0x00    // OR with address
+#define NRF_W_REGISTER_C        0x20    // OR with address
+#define NRF_R_RX_PAYLOAD_C      0x61
+#define NRF_W_TX_PAYLOAD_C      0xA0
+#define NRF_FLUSH_TX_C          0xE1
+#define NRF_FLUSH_RX_C          0xE2
+#define NRF_REUSE_TX_PL_C       0xE3
+#define NRF_R_RX_PL_WID_C       0x60
+#define NRF_W_ACK_PAYLOAD_C     0xA8  // OR with pipe number
+#define NRF_TX_PAYLOAD_NOACK_C  0xB0
+#define NRF_NOP_C               0xFF  // Can be used to get STATUS
+
 /* PB2 => CE
  * PB3 => CSN
  * PB5 => IRQ
  */
 // bit specific addresses for the ports
-#define NRF_CE  (GPIO_PORTB_DATA_BITS_R | 0x10)
-#define NRF_CSN (GPIO_PORTB_DATA_BITS_R | 0x20)
+#define NRF_CE_SHF  1
+#define NRF_CE  (GPIO_PORTB_DATA_BITS_R | (1<<NRF_CE_SHF))
+#define NRF_CSN_SHF 2
+#define NRF_CSN (GPIO_PORTB_DATA_BITS_R | (1<<NRF_CSN_SHF))
 static inline void port_init(void)
 {
   SYSCTL_RCGCGPIO_R |= 0x02;  // turn on PB
@@ -186,15 +204,38 @@ static inline int enable(void)
   return set_ce(1);
 }
 
-static inline int reg_read(int addr)
+
+static inline void command_send(uint8_t command)
 {
-  // TODO
+  ssi_send(command);
 }
 
-static inline void reg_write(int addr, int data)
+static inline uint8_t reg_read(uint8_t addr)
 {
-  // TODO
+  command_send(NRF_R_REGISTER_C | (addr&0x1F));
+  uint8_t status = ssi_recv();  // peel off the status
+  uint8_t reg = ssi_recv();
+  return reg;
 }
+
+// multibyte read
+static inline void reg_readn(uint8_t addr, int n, uint8_t * buffer)
+{
+  command_send(NRF_R_REGISTER_C | (addr&0x1F));
+  uint8_t status = ssi_recv();  // peel off the status
+  while(n-- > 0)
+  {
+    *buffer++ = ssi_recv();
+  }
+}
+
+static inline void reg_write(uint8_t addr, uint8_t data)
+{
+  command_send(NRF_W_REGISTER_C | (addr&0x1F));
+  uint8_t status = ssi_recv();
+  ssi_send(data);
+}
+
 
 void nRF24L01p_Init(void)
 {
