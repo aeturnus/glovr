@@ -36,6 +36,7 @@
  * Includes
  */
 #include <drivers/devices/nRF24L01p_mbed.h>
+#include <drivers/tm4c/SysTick.h>
 #include <tm4c123gh6pm.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -275,13 +276,7 @@ static inline int deselect(void)
 
 static void wait_us( int val )
 {
-  //TODO:
-  while(val-- > 0)
-  {
-    for(volatile int i = 0; i < 0xFF; i++)
-    {
-    }
-  }
+  SysTick_Wait(80);
 }
 
 /**
@@ -344,6 +339,15 @@ void nRF24L01p_Init()
 
 }
 
+void nRF24L01p_disable(void)
+{
+  set_ce(0);
+}
+
+void nRF24L01p_enable(void)
+{
+  set_ce(1);
+}
 
 void nRF24L01p_powerUp(void) {
 
