@@ -2,7 +2,7 @@
 
 #include <drivers/tm4c/UART.h>
 #include <drivers/tm4c/PLL.h>
-#include <drivers/devices/nRF24L01.h>
+#include <drivers/devices/nRF24L01p.h>
 
 int main(void)
 {

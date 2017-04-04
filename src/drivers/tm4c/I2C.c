@@ -86,7 +86,7 @@ int I2C_Recv(int8_t slave, int length, uint8_t * buffer)
   // repeat if error
   
   return I2C3_MCS_R&(I2C_MCS_ADRACK|I2C_MCS_ERROR); // return I2C errors
-}}
+}
 
 // x is unused
 #define I2C_CheckSendError(x) \

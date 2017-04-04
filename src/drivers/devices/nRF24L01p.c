@@ -120,9 +120,9 @@
  */
 // bit specific addresses for the ports
 #define NRF_CE_SHF  1
-#define NRF_CE  (GPIO_PORTB_DATA_BITS_R | (1<<NRF_CE_SHF))
+#define NRF_CE  (*((volatile uint32_t *)((uint32_t)GPIO_PORTB_DATA_BITS_R | (1<<(NRF_CE_SHF+2)))))
 #define NRF_CSN_SHF 2
-#define NRF_CSN (GPIO_PORTB_DATA_BITS_R | (1<<NRF_CSN_SHF))
+#define NRF_CSN (*((volatile uint32_t *)((uint32_t)GPIO_PORTB_DATA_BITS_R | (1<<(NRF_CSN_SHF+2)))))
 static inline void port_init(void)
 {
   SYSCTL_RCGCGPIO_R |= 0x02;  // turn on PB
@@ -130,7 +130,7 @@ static inline void port_init(void)
   while((SYSCTL_PRGPIO_R&0x4)==0){};  // wait for gpio
   GPIO_PORTB_AFSEL_R  |= 0xD0;  // PB7,6,4 for SSI
   GPIO_PORTB_DEN_R    |= 0xFC;  // PB7-2 digital needed
-  GPIO_PORTB_ASEL_R   &= ~0xFC; // turn off analog
+  GPIO_PORTB_AMSEL_R  &= ~0xFC; // turn off analog
 
   // enable SSI2 on 7,6,4 GPIO on the others
   GPIO_PORTB_PCTL_R   = (GPIO_PORTD_PCTL_R&0x000000FF) | 0x22020000;
@@ -151,21 +151,23 @@ static inline void port_init(void)
 // synchronously send a byte, blocks
 static inline void ssi_send(uint8_t data)
 {
-  while(!(SSI2_SR_R & SSI2_TNF)){}  // wait until TX has an opening
+  while(!(SSI2_SR_R & SSI_SR_TNF)){}  // wait until TX has an opening
   SSI2_DR_R = (data&0xFF);
 }
 
 // synchronously recv a byte, blocks
 static inline uint8_t ssi_recv(void)
 {
-  while(!(SSI2_SR_R & SSI2_RNE)){}  // wait until RX has something
+  while(!(SSI2_SR_R & SSI_SR_RNE)){}  // wait until RX has something
   uint8_t val = SSI2_DR_R & 0xFF;
   return val;
 }
 
 static inline int get_ce(void)
 {
-  return (NRF_CE>>1)&0x1;
+  //return (NRF_CE>>1)&0x1;
+  NRF_CE = 1;
+  return 0;
 }
 
 
@@ -183,7 +185,7 @@ static inline int get_csn(void)
 }
 
 
-static inline void set_csn(int x)
+static inline int set_csn(int x)
 {
   int old = get_csn();
   NRF_CSN = (x<<2);
@@ -242,7 +244,7 @@ static inline uint8_t payload_send(int length, const uint8_t * data)
   command_send(NRF_W_TX_PAYLOAD_C);
   while(length-- > 0)
   {
-    ssi_send(*(data++);
+    ssi_send(*(data++));
   }
   command_send(NRF_NOP_C);
   return ssi_recv();
@@ -250,7 +252,7 @@ static inline uint8_t payload_send(int length, const uint8_t * data)
 
 void nRF24L01p_Init(void)
 {
-  nRF24L01p_PortInit(void);
+  port_init();
 }
 
 void nRF24L01p_SetTX(void)
@@ -269,7 +271,7 @@ void nRF24L01p_Send(int length, const uint8_t * buffer)
     return;
   
   int payloads = (length-1)/32+1;
-  for(int payload = 0; i < payloads-1; payload++)
+  for(int payload = 0; payload < payloads-1; payload++)
   {
     payload_send(32,buffer);
     buffer += 32;
