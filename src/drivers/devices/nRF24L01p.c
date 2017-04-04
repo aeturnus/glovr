@@ -127,13 +127,13 @@ static inline void port_init(void)
 {
   SYSCTL_RCGCGPIO_R |= 0x02;  // turn on PB
   SYSCTL_RCGCSSI_R  |= 0x04;  // turn on SSI2
-  while((SYSCTL_PRGPIO_R&0x4)==0){};  // wait for gpio
+  while((SYSCTL_PRGPIO_R&0x2)==0){};  // wait for gpio
   GPIO_PORTB_AFSEL_R  |= 0xD0;  // PB7,6,4 for SSI
   GPIO_PORTB_DEN_R    |= 0xFC;  // PB7-2 digital needed
   GPIO_PORTB_AMSEL_R  &= ~0xFC; // turn off analog
 
   // enable SSI2 on 7,6,4 GPIO on the others
-  GPIO_PORTB_PCTL_R   = (GPIO_PORTD_PCTL_R&0x000000FF) | 0x22020000;
+  GPIO_PORTB_PCTL_R   = (GPIO_PORTB_PCTL_R&0x000000FF) | 0x22020000;
 
   // need to initialize tranceiver IRQ (active low) detection
   // TODO: setupt falling edge interrupt on Port B
@@ -209,7 +209,13 @@ static inline int enable(void)
 
 static inline void command_send(uint8_t command)
 {
+  enable();
   ssi_send(command);
+}
+
+static inline void command_done(void)
+{
+  disable();
 }
 
 static inline uint8_t reg_read(uint8_t addr)
@@ -217,6 +223,7 @@ static inline uint8_t reg_read(uint8_t addr)
   command_send(NRF_R_REGISTER_C | (addr&0x1F));
   uint8_t status = ssi_recv();  // peel off the status
   uint8_t reg = ssi_recv();
+  command_done();
   return reg;
 }
 
@@ -229,6 +236,7 @@ static inline void reg_readn(uint8_t addr, int n, uint8_t * buffer)
   {
     *(buffer++) = ssi_recv();
   }
+  command_done();
 }
 
 static inline void reg_write(uint8_t addr, uint8_t data)
@@ -236,6 +244,7 @@ static inline void reg_write(uint8_t addr, uint8_t data)
   command_send(NRF_W_REGISTER_C | (addr&0x1F));
   uint8_t status = ssi_recv();
   ssi_send(data);
+  command_done();
 }
 
 // precondition: length <= 32
@@ -247,6 +256,7 @@ static inline uint8_t payload_send(int length, const uint8_t * data)
     ssi_send(*(data++));
   }
   command_send(NRF_NOP_C);
+  command_done();
   return ssi_recv();
 }
 
