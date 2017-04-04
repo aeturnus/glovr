@@ -566,6 +566,11 @@
               <FileType>1</FileType>
               <FilePath>.\src\drivers\system\io.c</FilePath>
             </File>
+            <File>
+              <FileName>switch.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\drivers\system\switch.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -1154,6 +1159,11 @@
               <FileName>io.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\drivers\system\io.c</FilePath>
+            </File>
+            <File>
+              <FileName>switch.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\drivers\system\switch.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -1873,6 +1883,11 @@
               <FileType>1</FileType>
               <FilePath>.\src\drivers\system\io.c</FilePath>
             </File>
+            <File>
+              <FileName>switch.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\drivers\system\switch.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -2591,6 +2606,11 @@
               <FileType>1</FileType>
               <FilePath>.\src\drivers\system\io.c</FilePath>
             </File>
+            <File>
+              <FileName>switch.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\drivers\system\switch.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -3308,6 +3328,11 @@
               <FileName>io.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\drivers\system\io.c</FilePath>
+            </File>
+            <File>
+              <FileName>switch.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\drivers\system\switch.c</FilePath>
             </File>
           </Files>
         </Group>

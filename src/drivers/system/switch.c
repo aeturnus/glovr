@@ -1,7 +1,7 @@
 #include <stdint.h>
-#include "../inc/tm4c123gh6pm.h"
-#include "switch.h"
-#include "../driverlib/SysTick.h"
+#include <tm4c123gh6pm.h>
+#include <drivers/tm4c/SysTick.h>
+#include <drivers/system/switch.h>
 
 #define NUM_SWITCHES 3
 

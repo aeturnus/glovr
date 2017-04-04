@@ -4,14 +4,14 @@
 
 int fputc(int character, FILE * stream)
 {
-  UART0_OutChar(character);
+  UART1_OutChar(character);
   return 1;
 }
 
 int fgetc(FILE * stream)
 {
-  char c = UART0_InChar();
-  UART0_OutChar(c);
+  char c = UART1_InChar();
+  UART1_OutChar(c);
   return c;
 }
 
