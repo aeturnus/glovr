@@ -1,25 +1,25 @@
 #include <stdint.h>
-#include <tm4c123gh6pm.h>
-#include <drivers/system/switch.h>
-#include <drivers/SysTick.h>
+#include "../inc/tm4c123gh6pm.h"
+#include "switch.h"
+#include "../driverlib/SysTick.h"
 
-#define NUM_SWITCHES 5
+#define NUM_SWITCHES 3
 
-const static uint8_t switchMask = 0x0FF >> (8 - NUM_SWITCHES);
+#define switchMask 0xE0
 
-// TODO: Fix the port
 void Switch_Init(void) {
-  SYSCTL_RCGCGPIO_R |= 0x02;
-  while((SYSCTL_PRGPIO_R&0x02) == 0){};
-  GPIO_PORTB_DIR_R &= ~switchMask;        // PB0-4 is an input
-  GPIO_PORTB_AFSEL_R &= ~switchMask;      // regular port function
-  GPIO_PORTB_AMSEL_R &= ~switchMask;      // disable analog on PB0-4
-  GPIO_PORTB_PCTL_R &= ~(0x0FFFFFFFF >> ((8 - NUM_SWITCHES) << 2)); // PCTL GPIO on PB0-4
-  GPIO_PORTB_DEN_R |= switchMask;         // PB0-4 enabled as a digital port
+  SYSCTL_RCGCGPIO_R |= 0x04;            // activate Port C
+  while((SYSCTL_PRGPIO_R&0x04) == 0){};
+  GPIO_PORTC_LOCK_R = GPIO_LOCK_KEY;
+  GPIO_PORTC_DIR_R &= ~switchMask;    // PC5-7 is an input
+  GPIO_PORTC_AFSEL_R &= ~switchMask;      // regular port function
+  GPIO_PORTC_AMSEL_R &= ~switchMask;      // disable analog on PC5-7
+  GPIO_PORTC_PCTL_R &= ~(0xFFF00000); // PCTL GPIO on PC5-7
+  GPIO_PORTC_DEN_R |= switchMask;         // PC5-7 enabled as a digital port
 }
 
 uint8_t Switch_Input(void) {
-  return GPIO_PORTB_DATA_R & switchMask;
+  return (GPIO_PORTC_DATA_R & switchMask) >> 5;
 }
 
 #define DELAY 160
