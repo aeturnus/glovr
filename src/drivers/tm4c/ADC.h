@@ -26,6 +26,16 @@ typedef struct ADC_Data_str
  */
 void ADC_Init(void);
 
+
+/**
+ * @fn      ADC_Read
+ * @brief   Synchronously perform ADC read
+ *
+ * Blocking implementation. Clears the flag and
+ * when complete, flag in data will be set.
+ */
+void ADC_Read(ADC_Data * data);
+
 /**
  * @fn      ADC_BeginRead
  * @brief   Kicks off a full ADC read

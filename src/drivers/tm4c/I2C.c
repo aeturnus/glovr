@@ -18,7 +18,7 @@
 void I2C_Init(void){
   SYSCTL_RCGCI2C_R |= 0x0008;           // activate I2C3
   SYSCTL_RCGCGPIO_R |= 0x0008;          // activate port D
-  while((SYSCTL_PRGPIO_R&0x0002) == 0){};// ready?
+  while((SYSCTL_PRGPIO_R&0x0008) == 0){};// ready?
 
   GPIO_PORTD_AFSEL_R |= 0x03;           // 3) enable alt funct on PD0,1
   GPIO_PORTD_ODR_R |= 0x02;             // 4) enable open drain on PD1 only
