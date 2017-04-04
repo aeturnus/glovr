@@ -44,13 +44,13 @@
     #define NRF_RF_SETUP_RF_PWR_6dBm  (0x2<1)
     #define NRF_RF_SETUP_RF_PWR_0dBm  (0x3<1)
 
-#define NRF_RF_STATUS_A 0x07
-  #define NRF_RF_STATUS_RX_DR   0x40
-  #define NRF_RF_STATUS_TX_DS   0x20
-  #define NRF_RF_STATUS_MAX_RT  0x10
-  #define NRF_RF_STATUS_RX_P_NO 0x0E
-    #define NRF_RF_STATUS_PX_P_NO_RX_FIFO_EMPTY 0x7
-  #define NRF_RF_STATUS_TX_FULL 0x01
+#define NRF_STATUS_A 0x07
+  #define NRF_STATUS_RX_DR   0x40
+  #define NRF_STATUS_TX_DS   0x20
+  #define NRF_STATUS_MAX_RT  0x10
+  #define NRF_STATUS_RX_P_NO 0x0E
+    #define NRF_STATUS_PX_P_NO_RX_FIFO_EMPTY 0x7
+  #define NRF_STATUS_TX_FULL 0x01
 
 #define NRF_OBSERVE_TX_A  0x08
 
@@ -119,10 +119,12 @@
  * PB5 => IRQ
  */
 // bit specific addresses for the ports
-#define NRF_CE_SHF  1
+#define NRF_CE_SHF  2
 #define NRF_CE  (*((volatile uint32_t *)((uint32_t)GPIO_PORTB_DATA_BITS_R | (1<<(NRF_CE_SHF+2)))))
-#define NRF_CSN_SHF 2
+//#define NRF_CE  (*((volatile uint32_t *)(0x40005000 | 0x10)))
+#define NRF_CSN_SHF 3
 #define NRF_CSN (*((volatile uint32_t *)((uint32_t)GPIO_PORTB_DATA_BITS_R | (1<<(NRF_CSN_SHF+2)))))
+//#define NRF_CSN (*((volatile uint32_t *)(0x40005000 | 0x20)))
 static inline void port_init(void)
 {
   SYSCTL_RCGCGPIO_R |= 0x02;  // turn on PB
@@ -130,6 +132,7 @@ static inline void port_init(void)
   while((SYSCTL_PRGPIO_R&0x2)==0){};  // wait for gpio
   GPIO_PORTB_AFSEL_R  |= 0xD0;  // PB7,6,4 for SSI
   GPIO_PORTB_DEN_R    |= 0xFC;  // PB7-2 digital needed
+  GPIO_PORTB_DIR_R    |= 0x0C;  // PB2,3 are output
   GPIO_PORTB_AMSEL_R  &= ~0xFC; // turn off analog
 
   // enable SSI2 on 7,6,4 GPIO on the others
@@ -165,30 +168,28 @@ static inline uint8_t ssi_recv(void)
 
 static inline int get_ce(void)
 {
-  //return (NRF_CE>>1)&0x1;
-  NRF_CE = 1;
-  return 0;
+  return (NRF_CE>>NRF_CE_SHF)&0x1;
 }
 
 
 static inline int set_ce(int x)
 {
   int old = get_ce();
-  NRF_CE = (x<<1);
+  NRF_CE = (x<<NRF_CE_SHF);
   return old;
 }
 
 
 static inline int get_csn(void)
 {
-  return (NRF_CSN>>1)&0x1;
+  return (NRF_CSN>>NRF_CSN_SHF)&0x1;
 }
 
 
 static inline int set_csn(int x)
 {
   int old = get_csn();
-  NRF_CSN = (x<<2);
+  NRF_CSN = (x<<NRF_CSN_SHF);
   return old;
 }
 
@@ -206,23 +207,38 @@ static inline int enable(void)
   return set_ce(1);
 }
 
+static inline int select(void)
+{
+  return set_csn(0);
+}
 
+static inline int deselect(void)
+{
+  return set_csn(1);
+}
+
+
+// transfer begin
 static inline void command_send(uint8_t command)
 {
-  enable();
+  select();
   ssi_send(command);
 }
 
+// transfer done
 static inline void command_done(void)
 {
-  disable();
+  deselect();
 }
 
 static inline uint8_t reg_read(uint8_t addr)
 {
   command_send(NRF_R_REGISTER_C | (addr&0x1F));
   uint8_t status = ssi_recv();  // peel off the status
-  uint8_t reg = ssi_recv();
+  uint8_t reg;
+  //if(addr != NRF_STATUS_A)
+  //ssi_send(NRF_NOP_C);
+  reg = ssi_recv();
   command_done();
   return reg;
 }
@@ -239,12 +255,14 @@ static inline void reg_readn(uint8_t addr, int n, uint8_t * buffer)
   command_done();
 }
 
-static inline void reg_write(uint8_t addr, uint8_t data)
+static /*inline*/ void reg_write(uint8_t addr, uint8_t data)
 {
+  int oldCE = disable();
   command_send(NRF_W_REGISTER_C | (addr&0x1F));
   uint8_t status = ssi_recv();
   ssi_send(data);
   command_done();
+  set_ce(oldCE);
 }
 
 // precondition: length <= 32
@@ -260,9 +278,32 @@ static inline uint8_t payload_send(int length, const uint8_t * data)
   return ssi_recv();
 }
 
+static void test(void)
+{
+  // test the CE and CSN
+  /*
+  select();
+  deselect();
+  enable();
+  disable();
+  */
+
+  // powerup
+  volatile uint8_t orig_config = reg_read(NRF_CONFIG_A);
+  volatile uint8_t config = orig_config | NRF_CONFIG_PWR_UP;
+  reg_write(NRF_CONFIG_A,config);
+  volatile uint8_t new_config = reg_read(NRF_CONFIG_A);
+  
+  volatile uint8_t status = reg_read(NRF_STATUS_A);
+  volatile uint8_t fifo_status = reg_read(NRF_FIFO_STATUS_A);
+  return;
+}
+
 void nRF24L01p_Init(void)
 {
   port_init();
+  deselect();
+  test();
 }
 
 void nRF24L01p_SetTX(void)
