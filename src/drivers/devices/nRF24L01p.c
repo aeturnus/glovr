@@ -147,7 +147,6 @@ static inline void port_init(void)
   SSI2_CPSR_R = 2;  // CLK speed: divide by 2
   SSI2_CR0_R = (SSI2_CR0_R&~(0x0000FFF0));  // SCR = 0, SPH = 0, SPO = 0 Freescale
   SSI2_CR0_R |= 0x07; // DSS=8-bit data
-  SSI2_DR_R = 0;      // push a zero out at the beginning
   SSI2_CR1_R |= 0x02; // enable SSI woo!
 }
 
@@ -236,8 +235,7 @@ static inline uint8_t reg_read(uint8_t addr)
   command_send(NRF_R_REGISTER_C | (addr&0x1F));
   uint8_t status = ssi_recv();  // peel off the status
   uint8_t reg;
-  //if(addr != NRF_STATUS_A)
-  //ssi_send(NRF_NOP_C);
+  ssi_send(NRF_NOP_C);  // for some reason we have to NOP...
   reg = ssi_recv();
   command_done();
   return reg;
