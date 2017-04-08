@@ -15,3 +15,6 @@
 *.plg
 *.tra
 bin
+*.elf
+*.swo
+*.swp
