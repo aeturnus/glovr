@@ -37,3 +37,38 @@ TEST_F(Queue_Test,TestInt)
     ASSERT_EQ(test[i],get) << "i = " << i;
   }
 }
+
+typedef struct TestStruct_str
+{
+  int real;
+  int comp;
+  char hash;
+}TestStruct;
+TEST_F(Queue_Test,TestStruct)
+{
+  TestStruct buffer[10];
+  TestStruct test[] = {
+                        {5,6,0}, {2,0,1}, {8,3,2},
+                        {9,9,9}, {0,0,0}, {3,9,3},
+                        {2,3,6}, {2310,3429,23}, {-1023,32389,-120},
+                      };
+
+  Queue queue;
+  Queue_ctor(&queue, buffer, ELEM_SIZE(buffer), ARRAY_LEN(buffer));
+
+  for(unsigned int i = 0; i < ARRAY_LEN(test); i++)
+  {
+    Queue_put(&queue, &test[i]);
+  }
+
+  TestStruct get;
+  for(unsigned int i = 0; i < ARRAY_LEN(test); i++)
+  {
+    Queue_get(&queue, &get);
+    ASSERT_EQ(test[i].real,get.real) << "i = " << i;
+    ASSERT_EQ(test[i].comp,get.comp) << "i = " << i;
+    ASSERT_EQ(test[i].hash,get.hash) << "i = " << i;
+  }
+}
+
+
