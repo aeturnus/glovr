@@ -27,8 +27,8 @@ typedef struct Queue_str
 
 
 /**
- * @fn  Queue_ctor
- * @brief Constructs the queue struct
+ * @fn  Queue_ctor_raw
+ * @brief Constructs the queue struct.
  *
  * @param queue         Pointer to an allocated Queue
  * @param buffer        The buffer of data to hold the queue: this should be of the
@@ -36,7 +36,12 @@ typedef struct Queue_str
  * @param element_size  The sizeof() of each data elements
  * @param buffer_size   The how many elements can be stored in the buffer
  */
-void Queue_ctor( Queue * queue, void * buffer, int element_size, int buffer_size );
+void Queue_ctor_raw( Queue * queue, void * buffer, int element_size, int buffer_size );
+
+/*
+ * An abstracted version of Queue_ctor_raw, which uses a macro to get the sizes
+ */
+#define Queue_ctor(queue, buffer) Queue_ctor_raw(queue,buffer,sizeof(buffer[0]),sizeof(buffer)/sizeof(buffer[0]))
 
 /**
  * @fn Queue_put
@@ -58,41 +63,97 @@ QueueStatus Queue_put( Queue * queue, const void * data );
  */
 QueueStatus Queue_get( Queue * queue, void * data );
 
+// Templated implementation
+#define template_QueueT(type)\
+  \
+  typedef struct QueueT_##type_str QueueT_##type;\
+  typedef struct\
+  {\
+    QueueStatus (* getStatus)(const QueueT_##type *);\
+    QueueStatus (* put)(QueueT_##type *, const type *);\
+    QueueStatus (* get)(QueueT_##type *, type *);\
+  } QueueT_vtable_##type;\
+  struct QueueT_##type_str\
+  {\
+    type * buffer;\
+    int buffer_size;\
+    QueueStatus status;\
+    int enq_i;\
+    int deq_i;\
+    \
+    QueueT_vtable_##type vtable;\
+  };\
+  QueueStatus QueueT_getStatus_##type( const QueueT_##type * queue )\
+  {\
+    return queue->status;\
+  }\
+  QueueStatus QueueT_put_##type( QueueT_##type * queue, const type * data )\
+  {\
+    if(queue->status == QueueFull)\
+    {\
+      return QueueFull;\
+    }\
+    queue->buffer[queue->enq_i] = *data;\
+    queue->enq_i = (queue->enq_i+1)%queue->buffer_size;\
+    if(queue->enq_i == queue->deq_i)\
+    {\
+      queue->status = QueueFull;\
+    }\
+    else\
+    {\
+      queue->status = QueueOk;\
+    }\
+    return QueueOk;\
+  }\
+  QueueStatus QueueT_get_##type( QueueT_##type * queue, type * data )\
+  {\
+    if(queue->status == QueueEmpty)\
+    {\
+      return QueueEmpty;\
+    }\
+    *data = queue->buffer[queue->deq_i];\
+    queue->deq_i = (queue->deq_i+1)%queue->buffer_size;\
+    if(queue->deq_i == queue->enq_i)\
+    {\
+      queue->status = QueueEmpty;\
+    }\
+    else\
+    {\
+      queue->status = QueueOk;\
+    }\
+    return QueueOk;\
+  }\
+  \
+  QueueT_vtable_##type QueueT_vtable_##type_table =\
+  {\
+    &QueueT_getStatus_##type,\
+    &QueueT_put_##type,\
+    &QueueT_get_##type\
+  };\
+  \
+  void QueueT_ctor_##type( QueueT_##type * queue, type * buffer, int buffer_size )\
+  {\
+    queue->buffer = buffer;\
+    queue->buffer_size = buffer_size;\
+    queue->status = QueueEmpty;\
+    queue->enq_i = 0;\
+    queue->deq_i = 0;\
+    queue->vtable = QueueT_vtable_##type_table;\
+  }\
 
-typedef struct Queue8_str
-{
-  uint8_t * buffer;
-  int buffer_size;
-
-  QueueStatus status;
-  int enq_i;
-  int deq_i;
-} Queue8;
-
-typedef struct Queue16_str
-{
-  uint16_t * buffer;
-  int buffer_size;
-
-  QueueStatus status;
-  int enq_i;
-  int deq_i;
-} Queue16;
-
-typedef struct Queue32_str
-{
-  uint32_t * buffer;
-  int buffer_size;
-
-  QueueStatus status;
-  int enq_i;
-  int deq_i;
-} Queue32;
 
 
+#define QueueT(type) QueueT_##type
+#define QueueT_ctor(type,queue,buffer)\
+  QueueT_ctor_##type(queue,buffer,sizeof(buffer)/sizeof(buffer[0]))
 
-void Queue8_ctor( Queue8 * queue, uint8_t * buffer, int buffer_size );
-QueueStatus Queue8_put( Queue8 * queue, const uint8_t * data );
-QueueStatus Queue8_get( Queue8 * queue, uint8_t * data );
+#define QueueT_getStatus(queue,data)\
+  (queue)->vtable.getStatus(queue,data)
+
+#define QueueT_put(queue,data)\
+  (queue)->vtable.put(queue,data)
+
+#define QueueT_get(queue,data)\
+  (queue)->vtable.get(queue,data)
 
 #endif//__QUEUE_H__

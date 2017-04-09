@@ -1,6 +1,6 @@
 #include <ds/queue.h>
 
-void Queue_ctor( Queue * queue, void * buffer, int element_size, int buffer_size )
+void Queue_ctor_raw( Queue * queue, void * buffer, int element_size, int buffer_size )
 {
   queue->buffer = (uint8_t *) buffer;
   queue->element_size = element_size;
@@ -100,7 +100,7 @@ QueueStatus Queue_get( Queue * queue, void * data )
 #undef INLINE_TRANSFER
 #endif
 
-
+/*
 void Queue8_ctor( Queue8 * queue, uint8_t * buffer, int buffer_size )
 {
   queue->buffer = (uint8_t *) buffer;
@@ -149,3 +149,4 @@ QueueStatus Queue8_get( Queue8 * queue, uint8_t * data )
   }
   return QueueOk;
 }
+*/

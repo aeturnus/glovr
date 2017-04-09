@@ -23,7 +23,7 @@ TEST_F(Queue_Test,TestInt)
   int test[] = {0,1,2,3,4,5,6,7,8,9};
 
   Queue queue;
-  Queue_ctor(&queue, buffer, ELEM_SIZE(buffer), ARRAY_LEN(buffer));
+  Queue_ctor_raw(&queue, buffer, ELEM_SIZE(buffer), ARRAY_LEN(buffer));
 
   for(unsigned int i = 0; i < ARRAY_LEN(test); i++)
   {
@@ -54,7 +54,7 @@ TEST_F(Queue_Test,TestStruct)
                       };
 
   Queue queue;
-  Queue_ctor(&queue, buffer, ELEM_SIZE(buffer), ARRAY_LEN(buffer));
+  Queue_ctor_raw(&queue, buffer, ELEM_SIZE(buffer), ARRAY_LEN(buffer));
 
   for(unsigned int i = 0; i < ARRAY_LEN(test); i++)
   {
@@ -71,4 +71,41 @@ TEST_F(Queue_Test,TestStruct)
   }
 }
 
+TEST_F(Queue_Test,TestCtorMacro)
+{
+  int buffer[10];
+  int test[] = {0,1,2,3,4,5,6,7,8,9};
 
+  Queue queue;
+  Queue_ctor(&queue, buffer);
+  for(unsigned int i = 0; i < ARRAY_LEN(test); i++)
+  {
+    Queue_put(&queue, &test[i]);
+  }
+  int get;
+  for(unsigned int i = 0; i < ARRAY_LEN(test); i++)
+  {
+    Queue_get(&queue, &get);
+    ASSERT_EQ(test[i],get) << "i = " << i;
+  }
+}
+
+template_QueueT(int);
+TEST_F(Queue_Test,TestIntTyped)
+{
+  int buffer[10];
+  int test[] = {0,1,2,3,4,5,6,7,8,9};
+
+  QueueT(int) queue;
+  QueueT_ctor(int,&queue,buffer);
+  for(unsigned int i = 0; i < ARRAY_LEN(test); i++)
+  {
+    QueueT_put_int(&queue,&test[i]);
+  }
+  int get;
+  for(unsigned int i = 0; i < ARRAY_LEN(test); i++)
+  {
+    QueueT_get_int(&queue,&get);
+    ASSERT_EQ(test[i],get) << "i = " << i;
+  }
+}
