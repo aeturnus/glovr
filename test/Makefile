@@ -5,7 +5,7 @@ SOURCES = ../src/ds/*.c
 INCLUDE = ../src
 
 TEST_DIR = .
-GTEST_EXEC = ds-test.elf
+GTEST_EXEC = test.elf
 GTEST_SRC = $(TEST_DIR)/*.cpp
 
 $(GTEST_EXEC):
