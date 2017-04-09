@@ -91,6 +91,7 @@ TEST_F(Queue_Test,TestCtorMacro)
 }
 
 template_QueueT(int);
+template_QueueT(char);
 TEST_F(Queue_Test,TestIntTyped)
 {
   int buffer[10];

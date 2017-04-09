@@ -66,14 +66,14 @@ QueueStatus Queue_get( Queue * queue, void * data );
 // Templated implementation
 #define template_QueueT(type)\
   \
-  typedef struct QueueT_##type_str QueueT_##type;\
+  typedef struct QueueT_##type##_str QueueT_##type;\
   typedef struct\
   {\
     QueueStatus (* getStatus)(const QueueT_##type *);\
     QueueStatus (* put)(QueueT_##type *, const type *);\
     QueueStatus (* get)(QueueT_##type *, type *);\
   } QueueT_vtable_##type;\
-  struct QueueT_##type_str\
+  struct QueueT_##type##_str\
   {\
     type * buffer;\
     int buffer_size;\
@@ -124,7 +124,7 @@ QueueStatus Queue_get( Queue * queue, void * data );
     return QueueOk;\
   }\
   \
-  QueueT_vtable_##type QueueT_vtable_##type_table =\
+  QueueT_vtable_##type QueueT_vtable_##type##_table =\
   {\
     &QueueT_getStatus_##type,\
     &QueueT_put_##type,\
@@ -138,7 +138,7 @@ QueueStatus Queue_get( Queue * queue, void * data );
     queue->status = QueueEmpty;\
     queue->enq_i = 0;\
     queue->deq_i = 0;\
-    queue->vtable = QueueT_vtable_##type_table;\
+    queue->vtable = QueueT_vtable_##type##_table;\
   }\
 
 
