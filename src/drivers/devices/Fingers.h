@@ -34,6 +34,14 @@ typedef struct Fingers_str
  */
 void Finger_Init(void);
 
+void Finger_TareExtend(void);
+
+void Finger_TareFlex(void);
+
+void Finger_TareAbduct(void);
+
+void Finger_TareAdduct(void);
+
 /**
  * @fn          Finger_GetReadings
  * @brief       Gets readings from the Finger

@@ -202,8 +202,8 @@ static inline void port_init(void)
 
   // need to initialize SSI2
   SSI2_CR1_R = 0x0; // turn off, master mode
-  SSI2_CPSR_R = 2;  // CLK speed: divide by 2
-  SSI2_CR0_R = (SSI2_CR0_R&~(0x0000FFF0));  // SCR = 0, SPH = 0, SPO = 0 Freescale
+  SSI2_CPSR_R = 64;  // CLK speed: divide by 2
+  SSI2_CR0_R = (SSI2_CR0_R&~(0x0000FFF0));//| SSI_CR0_SPH;  // SCR = 0, SPH = 0, SPO = 0 Freescale
   SSI2_CR0_R |= 0x07; // DSS=8-bit data
   SSI2_CR1_R |= 0x02; // enable SSI woo!
 }
@@ -220,6 +220,16 @@ static inline uint8_t ssi_recv(void)
 {
   while(!(SSI2_SR_R & SSI_SR_RNE)){}  // wait until RX has something
   uint8_t val = SSI2_DR_R & 0xFF;
+  return val;
+}
+
+static inline uint8_t ssi_flush(void)
+{
+  uint8_t val;
+  while((SSI2_SR_R & SSI_SR_RNE))
+  {
+    val = SSI2_DR_R & 0xFF;
+  }
   return val;
 }
 
@@ -266,6 +276,7 @@ static inline int enable(void)
 
 static inline int select(void)
 {
+  ssi_flush();
   return set_csn(0);
 }
 
@@ -276,7 +287,7 @@ static inline int deselect(void)
 
 static void wait_us( int val )
 {
-  SysTick_Wait(80);
+  SysTick_Wait(80*val);
 }
 
 /**
@@ -317,6 +328,8 @@ void nRF24L01p_Init()
 
     wait_us(_NRF24L01P_TIMING_Tundef2pd_us);    // Wait for Power-on reset
 
+    nRF24L01p_getStatusRegister();
+  
     nRF24L01p_setRegister(_NRF24L01P_REG_CONFIG, 0); // Power Down
 
     nRF24L01p_setRegister(_NRF24L01P_REG_STATUS, _NRF24L01P_STATUS_MAX_RT|_NRF24L01P_STATUS_TX_DS|_NRF24L01P_STATUS_RX_DR);   // Clear any pending interrupts
@@ -617,8 +630,9 @@ void nRF24L01p_setTransferSize(int size, int pipe) {
 
     int rxPwPxRegister = _NRF24L01P_REG_RX_PW_P0 + ( pipe - NRF24L01P_PIPE_P0 );
 
+    nRF24L01p_getRegister(rxPwPxRegister);
     nRF24L01p_setRegister(rxPwPxRegister, ( size & _NRF24L01P_RX_PW_Px_MASK ) );
-
+    nRF24L01p_getRegister(rxPwPxRegister);
 }
 
 
@@ -997,7 +1011,8 @@ int nRF24L01p_write(int pipe, const char *data, int count) {
 
     // Clear the Status bit
     nRF24L01p_setRegister(_NRF24L01P_REG_STATUS, _NRF24L01P_STATUS_TX_DS);
-
+    //nRF24L01p_getRegister(_NRF24L01P_REG_STATUS);
+    //nRF24L01p_getRegister(_NRF24L01P_REG_RX_PW_P0);
     if ( originalMode == _NRF24L01P_MODE_RX ) {
 
         nRF24L01p_setReceiveMode();
@@ -1095,7 +1110,7 @@ int nRF24L01p_read(int pipe, char *data, int count) {
 }
 
 void nRF24L01p_setRegister(int regAddress, int regData) {
-
+    ssi_flush();
     //
     // Save the CE state
     //
@@ -1108,16 +1123,18 @@ void nRF24L01p_setRegister(int regAddress, int regData) {
     int status = ssi_recv();
 
     ssi_send(regData & 0xFF);
+    //int thing = ssi_recv();
     deselect();
 
     set_ce(originalCe);
-    wait_us( _NRF24L01P_TIMING_Tpece2csn_us );
+    wait_us( _NRF24L01P_TIMING_Tpece2csn_us * 10000);
+
 
 }
 
 
 int nRF24L01p_getRegister(int regAddress) {
-
+    ssi_flush();
     int cn = (_NRF24L01P_SPI_CMD_RD_REG | (regAddress & _NRF24L01P_REG_ADDRESS_MASK));
 
     select();
@@ -1135,7 +1152,7 @@ int nRF24L01p_getRegister(int regAddress) {
 }
 
 int nRF24L01p_getStatusRegister(void) {
-
+    ssi_flush();
     select();
     ssi_send(_NRF24L01P_SPI_CMD_NOP);
     int status = ssi_recv();
