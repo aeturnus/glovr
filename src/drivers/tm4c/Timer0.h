@@ -24,7 +24,7 @@
 #ifndef __TIMER0INTS_H__ // do not include more than once
 #define __TIMER0INTS_H__
 #include <stdint.h>
-#include "../inc/tm4c123gh6pm.h"
+#include "tm4c123gh6pm.h"
 // ***************** Timer0_Init ****************
 // Activate Timer0 interrupts to run user task periodically
 // Inputs:  task is a pointer to a user function
