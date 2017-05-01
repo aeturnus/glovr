@@ -2,20 +2,30 @@
 
 #include <drivers/tm4c/UART.h>
 #include <drivers/tm4c/PLL.h>
+
+#include <drivers/devices/Fingers.h>
+
 #include <drivers/system/hw.h>
 #include <drivers/system/time.h>
 #include <drivers/system/switch.h>
-#include <drivers/devices/nRF24L01p_mbed.h>
+#include <drivers/system/display.h>
+#include <drivers/system/motion.h>
+
+void periodicTimerTask()
+{
+  return;
+}
 
 static void InitializeHardware(void)
 {
   Hardware_Init();
   Time_Init();
   Display_Init();
-  MPU_Init();
+  Motion_Init();
   Fingers_Init();
-  nRF24L01p_Init();
 }
+
+static int flag = 0;
 
 int main(void)
 {

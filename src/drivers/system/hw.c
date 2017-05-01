@@ -10,5 +10,3 @@ void Hardware_Standby(void)
 {
   WaitForInterrupt();
 }
-
-#endif//__HW_H__
