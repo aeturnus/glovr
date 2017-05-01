@@ -12,6 +12,8 @@ void MPU_Init(void)
   I2C_WriteReg(MPU9250_ADDR,MPU9250_PWR1,1,&on);
 }
 
+static int16_t accOff[3] = {0,0,0};
+static int16_t gyrOff[3] = {0,0,0};
 static uint8_t buffer[14];
 void MPU_GetReadings(MPU_Data * readings)
 {
@@ -23,4 +25,9 @@ void MPU_GetReadings(MPU_Data * readings)
   readings->gyr_x = (int16_t)( (buffer[ 8] << 8) | buffer[ 9] );
   readings->gyr_y = (int16_t)( (buffer[10] << 8) | buffer[11] );
   readings->gyr_z = (int16_t)( (buffer[12] << 8) | buffer[13] );
+}
+
+void MPU_Tare()
+{
+  
 }

@@ -42,5 +42,10 @@ void MPU_Init(void);
  */
 void MPU_GetReadings(MPU_Data * readings);
 
+/**
+ * @fn          MPU_Tare
+ * @brief       Set software offsets for readings
+ */
+void MPU_Tare();
 
 #endif//__MPU9250_H__

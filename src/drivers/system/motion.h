@@ -14,14 +14,14 @@ typedef struct Motion_Data_str
   uint32_t timestamp;
 
   // position
-  int16_t x;
-  int16_t y;
-  int16_t z;
+  int32_t x;
+  int32_t y;
+  int32_t z;
 
   // orientation
-  int16_t yaw;
-  int16_t pitch;
-  int16_t roll;
+  int32_t yaw;
+  int32_t pitch;
+  int32_t roll;
 } Motion_Data;
 
 /**
