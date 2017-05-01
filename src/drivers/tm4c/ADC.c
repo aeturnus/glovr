@@ -24,41 +24,18 @@ void ADC_Init(void)
   ADC0_PC_R &= ~0xF;              // 8) clear max sample rate field
   ADC0_PC_R |= 0x1;               //    configure for 125K samples/sec
   ADC0_SSPRI_R = 0x3210;          // 9) Sequencer 3 is lowest priority
-  /*
-  ADC0_ACTSS_R &= ~0x0006;        // 10) disable sample sequencer 2
-  ADC0_EMUX_R &= ~0x0F00;         // 11) seq2 is software trigger
-  ADC0_SSMUX2_R = 0x0089;         // 12) set channels for SS2
-  ADC0_SSMUX1_R = 0x0123;         // 12) set channels for SS1
-  ADC0_SSCTL2_R = 0x0060;         // 13) no TS0 D0 IE0 END0 TS1 D1, yes IE1 END1
-  ADC0_SSCTL1_R = 0x0060;         // 13) no TS0 D0 IE0 END0 TS1 D1, yes IE1 END1
-  ADC0_IM_R &= ~0x0006;           // 14) disable SS2 interrupts
-  ADC0_ACTSS_R |= 0x0006;         // 15) enable sample sequencer 2 and 1
-  */
+
   ADC0_ACTSS_R &= ~0x0001;        // 10) disable sample sequencer 1
   ADC0_EMUX_R &= ~0x000F;         // 11) seq0 is software trigger
   ADC0_SSMUX0_R = 0x93210;        // 12) set channels for SS1
   ADC0_SSCTL0_R = 0x2<<21;        // 13) no TS0 D0 IE0 END0 TS1 D1, yes IE1 END1
   ADC0_IM_R &= ~0x0001;           // 14) disable SS0 interrupts
+  ADC0_SAC_R = 5;                 // 32x oversampling
   ADC0_ACTSS_R |= 0x0001;         // 15) enable sample sequencer 0
 }
 
 void ADC_Read(ADC_Data * data)
 {
-  /*
-  ADC0_PSSI_R = 0x0004;            // 1) initiate SS2
-  while((ADC0_RIS_R&0x04)==0){};   // 2) wait for conversion done
-  data->values[4] = ADC0_SSFIFO2_R&0xFFF; 
-  data->values[5] = ADC0_SSFIFO2_R&0xFFF;
-  ADC0_ISC_R = 0x0004;             // 4) acknowledge completion
-  ADC0_PSSI_R = 0x0002;            // 1) initiate SS1
-  while((ADC0_RIS_R&0x02)==0){};   // 2) wait for conversion done for 0123
-  data->values[0] = ADC0_SSFIFO1_R&0xFFF; 
-  data->values[1] = ADC0_SSFIFO1_R&0xFFF;
-  data->values[2] = ADC0_SSFIFO1_R&0xFFF;
-  data->values[3] = ADC0_SSFIFO1_R&0xFFF;
-  ADC0_ISC_R = 0x0002;             // 4) acknowledge completion
-  */
-
   ADC0_PSSI_R = 0x0001;            // 1) initiate SS1
   while((ADC0_RIS_R&0x01)==0){};   // 2) wait for conversion done for 0123
   data->values[3] = ADC0_SSFIFO0_R&0xFFF; 
@@ -74,5 +51,23 @@ void ADC_Read(ADC_Data * data)
 
 void ADC_BeginRead(ADC_Data * data)
 {
+  ADC0_PSSI_R = 0x0001;            // 1) initiate SS1
+  data->flag = 0;
+}
 
+int ADC_FinishRead(ADC_Data * data)
+{
+  if((ADC0_RIS_R&0x01)==0)
+  {
+    return -1;
+  }
+  data->values[3] = ADC0_SSFIFO0_R&0xFFF; 
+  data->values[2] = ADC0_SSFIFO0_R&0xFFF; 
+  data->values[1] = ADC0_SSFIFO0_R&0xFFF; 
+  data->values[0] = ADC0_SSFIFO0_R&0xFFF; 
+  data->values[4] = ADC0_SSFIFO0_R&0xFFF;
+  data->values[5] = ADC0_SSFIFO0_R&0xFFF;
+  ADC0_ISC_R = 0x0001;             // 4) acknowledge completion
+  data->flag = 1;
+  return 0;
 }

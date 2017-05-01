@@ -2,6 +2,10 @@
 
 #include <drivers/tm4c/UART.h>
 
+void IO_Init(void)
+{
+}
+
 int fputc(int character, FILE * stream)
 {
   UART1_OutChar(character);

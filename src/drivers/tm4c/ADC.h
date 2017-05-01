@@ -45,5 +45,7 @@ void ADC_Read(ADC_Data * data);
  */
 void ADC_BeginRead(ADC_Data * data);
 
+int ADC_FinishRead(ADC_Data * data);
+
 
 #endif//__ADC_H__
