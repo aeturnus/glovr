@@ -46,6 +46,6 @@ void MPU_GetReadings(MPU_Data * readings);
  * @fn          MPU_Tare
  * @brief       Set software offsets for readings
  */
-void MPU_Tare();
+void MPU_Tare(int tareAcc, int tareGyr);
 
 #endif//__MPU9250_H__

@@ -6,6 +6,7 @@
 void Motion_Init(void)
 {
   MPU_Init();
+  MPU_Tare(0,1);
 }
 
 
@@ -16,6 +17,7 @@ static Motion_Data oldData;
 #define M_PI 3.1459265359
 #define ACCEL_SEN 8192.0
 #define GYRO_SEN  (32768.0f/250.0f)
+#define AVG_TAPS 128
 //#define GYRO_SEN  32.768
 //#define GYRO_SEN  65.536
 void Motion_GetReadings(Motion_Data * data)
@@ -29,7 +31,7 @@ void Motion_GetReadings(Motion_Data * data)
 
   int32_t dt = time - oldTime;
   MPU_Data mpu;
-  static int16_t filter[6][32];
+  static int16_t filter[6][AVG_TAPS];
   static int16_t result[6];
   static int index = 0;
   MPU_GetReadings(&mpu);
@@ -42,11 +44,11 @@ void Motion_GetReadings(Motion_Data * data)
   for(int r = 0; r < 6; r++)
   {
     int32_t sum = 0;
-    for(int c = 0; c < 32; c++)
+    for(int c = 0; c < AVG_TAPS; c++)
     {
       sum += filter[r][c];
     }
-    result[r] = sum/32;
+    result[r] = sum/AVG_TAPS;
   }
   mpu.acc_x = result[0];
   mpu.acc_y = result[1];
@@ -54,7 +56,7 @@ void Motion_GetReadings(Motion_Data * data)
   mpu.gyr_x = result[3];
   mpu.gyr_y = result[4];
   mpu.gyr_z = result[5];
-  index = (index+1)&0x1F;
+  index = (index+1)%AVG_TAPS;
   float pitchA, rollA, yawA;
   pitch += (((float)mpu.gyr_x / GYRO_SEN) * dt)/1000 + offPitch;
   roll  -= (((float)mpu.gyr_y / GYRO_SEN) * dt)/1000  + offRoll;
@@ -66,8 +68,8 @@ void Motion_GetReadings(Motion_Data * data)
     pitchA = atan2f((float)mpu.acc_x, (float)mpu.acc_z) * 180 / M_PI;
     rollA  = atan2f((float)mpu.acc_y, (float)mpu.acc_z) * 180 / M_PI;
     
-    pitch = pitch * .80 + pitchA * .20;
-    roll = roll * .80 + rollA * .20;
+    pitch = pitch * .50 + pitchA * .50;
+    roll = roll * .50 + rollA * .50;
   }
   if(roll > 180.0)
     roll = 180.0;
@@ -85,7 +87,7 @@ void Motion_GetReadings(Motion_Data * data)
   pitchF = (int32_t) (pitch * 1000);
   rollF = (int32_t) (roll * 1000);
   yawF = (int32_t) (yaw * 1000);
-  data->roll = pitchF;
+  data->roll = -pitchF;
   data->pitch = rollF;
   data->yaw = yawF;
 
