@@ -55,18 +55,22 @@ static void ProcessInput()
     inputOld[i] = input[i];
   }
   
-  if(keydown[0])
+  int cH = Display_GetCellHeight();
+  if(keydown[1])
   {
     switch(state)
     {
     case 0:
       Fingers_TareExtend();
+      //Display_DrawString(0,cH*11,"Next Press: Tare flex  ",0xFFFF,0x0000,1);
       state++;
       break;
     case 1:
       Fingers_TareFlex();
-      state++;
+      //Display_DrawString(0,cH*11,"Next Press: Tare extend",0xFFFF,0x0000,1);
+      state = 0;
       break;
+    /*
     case 2:
       Fingers_TareAbduct();
       state++;
@@ -75,6 +79,7 @@ static void ProcessInput()
       Fingers_TareAdduct();
       state = 0;
       break;
+    */
     }
   }
 }
@@ -84,11 +89,11 @@ static void sprintfFixed(char * buffer, int32_t value)
   if(value < 0)
   {
     value = -value;
-    sprintf(buffer,"-%d.%03d",value/1000,value%1000);
+    sprintf(buffer,"-%d.%03d  ",value/1000,value%1000);
   }
   else
   {
-    sprintf(buffer,"%d.%03d",value/1000,value%1000);
+    sprintf(buffer,"%d.%03d  ",value/1000,value%1000);
   }
 }
 
@@ -114,9 +119,9 @@ static void DrawData(Motion_Data * motion, Fingers * fingers)
   Display_DrawString(cW*8,cH*(row++),buffer,0xFFFF,0x0000,1);
   
   row++;
-  sprintf(buffer,"%%%d",fingers->extend[Finger_Thumb]);
+  sprintf(buffer,"%%%02d  ",fingers->extend[Finger_Thumb]);
   Display_DrawString(cW*8,cH*(row++),buffer,0xFFFF,0x0000,1);
-  sprintf(buffer,"%%%d",fingers->extend[Finger_Index]);
+  sprintf(buffer,"%%%02d  ",fingers->extend[Finger_Index]);
   Display_DrawString(cW*8,cH*(row++),buffer,0xFFFF,0x0000,1);
 }
 
@@ -128,8 +133,8 @@ static void SendData()
   
   Fingers_BeginReadings(&fingers,&adc);
   Motion_GetReadings(&motion);
-  Comms_SendData(&motion,&fingers);
   Fingers_FinishReadings(&fingers,&adc);
+  Comms_SendData(&motion,&fingers);
   DrawData(&motion,&fingers);
 }
 
@@ -149,6 +154,8 @@ static void InitDisplay()
   row++;
   Display_DrawString(0,cH*(row++),"Thumb :",0xFFFF,0x0000,1);
   Display_DrawString(0,cH*(row++),"Index :",0xFFFF,0x0000,1);
+  
+  //Display_DrawString(0,cH*11,"Next Press: Tare extend",0xFFFF,0x0000,1);
 }
 
 static void InitializeHardware(void)
@@ -157,6 +164,7 @@ static void InitializeHardware(void)
   Time_Init();
   Display_Init();
   InitDisplay();
+  Switch_Init();
   Motion_Init();
   Fingers_Init();
   Comms_Init();

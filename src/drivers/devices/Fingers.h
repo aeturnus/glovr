@@ -14,11 +14,11 @@
 
 typedef enum Finger_ID_enum
 {
-  Finger_Thumb = 0,
-  Finger_Index,
-  Finger_Middle,
-  Finger_Ring,
-  Finger_Pinky
+  Finger_Thumb = 4,
+  Finger_Index = 0,
+  Finger_Middle= 0,
+  Finger_Ring  = 1,
+  Finger_Pinky = 2,
 } Finger_ID;
 
 /**

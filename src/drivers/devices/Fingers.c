@@ -99,6 +99,14 @@ void Fingers_TareAdduct(void)
 
 static void calculateReadings(Fingers * readings, ADC_Data * data)
 {
+  Interp interp;
+  calcInterp(&interp,3000,1000);
+  for(int i = 0; i < NUM_EXTEND; i++)
+  {
+    int8_t output = getFingerVal(&interp,data->values[i]);
+    readings->extend[i] = output;
+  }
+  /*
   for(int i = 0; i < NUM_EXTEND; i++)
   {
     int8_t output = getFingerVal(&extendInterp[i],data->values[i]);
@@ -109,6 +117,7 @@ static void calculateReadings(Fingers * readings, ADC_Data * data)
     int8_t output = getFingerVal(&abductInterp[i],data->values[i]);
     readings->abduct[i] = output;
   }
+  */
 
   readings->timestamp = Time_GetTime();
 }
