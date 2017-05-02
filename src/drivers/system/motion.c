@@ -17,7 +17,7 @@ static Motion_Data oldData;
 #define M_PI 3.1459265359
 #define ACCEL_SEN 8192.0
 #define GYRO_SEN  (32768.0f/250.0f)
-#define AVG_TAPS 128
+#define AVG_TAPS 64
 //#define GYRO_SEN  32.768
 //#define GYRO_SEN  65.536
 void Motion_GetReadings(Motion_Data * data)
@@ -58,8 +58,8 @@ void Motion_GetReadings(Motion_Data * data)
   mpu.gyr_z = result[5];
   index = (index+1)%AVG_TAPS;
   float pitchA, rollA, yawA;
-  pitch += (((float)mpu.gyr_x / GYRO_SEN) * dt)/1000 + offPitch;
-  roll  -= (((float)mpu.gyr_y / GYRO_SEN) * dt)/1000  + offRoll;
+  roll  += (((float)mpu.gyr_x / GYRO_SEN) * dt)/1000 + offRoll;
+  pitch -= (((float)mpu.gyr_y / GYRO_SEN) * dt)/1000 + offPitch;
   yaw   -= (((float)mpu.gyr_z / GYRO_SEN) * dt)/1000  + offYaw;
 
   int forceMagApprox = abs(mpu.acc_x) + abs(mpu.acc_y) + abs(mpu.acc_z);
@@ -68,8 +68,8 @@ void Motion_GetReadings(Motion_Data * data)
     pitchA = atan2f((float)mpu.acc_x, (float)mpu.acc_z) * 180 / M_PI;
     rollA  = atan2f((float)mpu.acc_y, (float)mpu.acc_z) * 180 / M_PI;
     
-    pitch = pitch * .50 + pitchA * .50;
-    roll = roll * .50 + rollA * .50;
+    pitch = pitch * .98 + pitchA * .02;
+    roll = roll * .98 + rollA * .02;
   }
   if(roll > 180.0)
     roll = 180.0;
@@ -87,8 +87,8 @@ void Motion_GetReadings(Motion_Data * data)
   pitchF = (int32_t) (pitch * 1000);
   rollF = (int32_t) (roll * 1000);
   yawF = (int32_t) (yaw * 1000);
-  data->roll = -pitchF;
-  data->pitch = rollF;
+  data->roll = rollF;
+  data->pitch = pitchF;
   data->yaw = yawF;
 
   oldTime = time;
