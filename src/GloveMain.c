@@ -43,11 +43,12 @@ static void periodicTimerTask()
   }
   return;
 }
-
+static int state = 0;
+#define DISABLED_FG 0x001F
+#define ENABLED_FG  0x03E0
 static void ProcessInput()
 {
   static Switch_State inputOld[3],input[3],keydown[3];
-  static int state = 0;
   Switch_GetStates(input);
   for(int i = 0; i < 3; ++i)
   {
@@ -61,13 +62,11 @@ static void ProcessInput()
     switch(state)
     {
     case 0:
-      Fingers_TareExtend();
-      //Display_DrawString(0,cH*11,"Next Press: Tare flex  ",0xFFFF,0x0000,1);
+      Display_DrawString(0,cH*11,"Disabled",DISABLED_FG,0x0000,1);
       state++;
       break;
     case 1:
-      Fingers_TareFlex();
-      //Display_DrawString(0,cH*11,"Next Press: Tare extend",0xFFFF,0x0000,1);
+      Display_DrawString(0,cH*11,"Enabled ",ENABLED_FG,0x0000,1);
       state = 0;
       break;
     /*
@@ -134,7 +133,8 @@ static void SendData()
   Fingers_BeginReadings(&fingers,&adc);
   Motion_GetReadings(&motion);
   Fingers_FinishReadings(&fingers,&adc);
-  Comms_SendData(&motion,&fingers);
+  if(state == 0)
+    Comms_SendData(&motion,&fingers);
   DrawData(&motion,&fingers);
 }
 
@@ -155,7 +155,7 @@ static void InitDisplay()
   Display_DrawString(0,cH*(row++),"Thumb :",0xFFFF,0x0000,1);
   Display_DrawString(0,cH*(row++),"Index :",0xFFFF,0x0000,1);
   
-  //Display_DrawString(0,cH*11,"Next Press: Tare extend",0xFFFF,0x0000,1);
+  Display_DrawString(0,cH*11,"Enabled ",ENABLED_FG,0x0000,1);
 }
 
 static void InitializeHardware(void)
