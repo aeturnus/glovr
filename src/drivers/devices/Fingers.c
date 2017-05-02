@@ -73,7 +73,7 @@ void Fingers_TareFlex(void)
   }
 }
 
-void Finger_TareAbduct(void)
+void Fingers_TareAbduct(void)
 {
   ADC_Data data;
   ADC_Read(&data);
@@ -85,7 +85,7 @@ void Finger_TareAbduct(void)
   }
 }
 
-void Finger_TareAdduct(void)
+void Fingers_TareAdduct(void)
 {
   ADC_Data data;
   ADC_Read(&data);
