@@ -19,6 +19,10 @@ typedef struct Motion_Data_str
   int32_t z;
 
   // orientation
+  int32_t dyaw;
+  int32_t dpitch;
+  int32_t droll;
+  
   int32_t yaw;
   int32_t pitch;
   int32_t roll;

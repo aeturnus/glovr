@@ -79,6 +79,47 @@ static void ProcessInput()
   }
 }
 
+static void sprintfFixed(char * buffer, int32_t value)
+{
+  if(value < 0)
+  {
+    value = -value;
+    sprintf(buffer,"-%d.%03d",value/1000,value%1000);
+  }
+  else
+  {
+    sprintf(buffer,"%d.%03d",value/1000,value%1000);
+  }
+}
+
+static void DrawData(Motion_Data * motion, Fingers * fingers)
+{
+  int cW = Display_GetCellWidth();
+  int cH = Display_GetCellHeight();
+  int row = 1;
+  char buffer[16];
+  sprintfFixed(buffer,motion->yaw);
+  Display_DrawString(cW*8,cH*(row++),buffer,0xFFFF,0x0000,1);
+  sprintfFixed(buffer,motion->pitch);
+  Display_DrawString(cW*8,cH*(row++),buffer,0xFFFF,0x0000,1);
+  sprintfFixed(buffer,motion->roll);
+  Display_DrawString(cW*8,cH*(row++),buffer,0xFFFF,0x0000,1);
+  row++;
+
+  sprintfFixed(buffer,motion->dyaw);
+  Display_DrawString(cW*8,cH*(row++),buffer,0xFFFF,0x0000,1);
+  sprintfFixed(buffer,motion->dpitch);
+  Display_DrawString(cW*8,cH*(row++),buffer,0xFFFF,0x0000,1);
+  sprintfFixed(buffer,motion->droll);
+  Display_DrawString(cW*8,cH*(row++),buffer,0xFFFF,0x0000,1);
+  
+  row++;
+  sprintf(buffer,"%%%d",fingers->extend[Finger_Thumb]);
+  Display_DrawString(cW*8,cH*(row++),buffer,0xFFFF,0x0000,1);
+  sprintf(buffer,"%%%d",fingers->extend[Finger_Index]);
+  Display_DrawString(cW*8,cH*(row++),buffer,0xFFFF,0x0000,1);
+}
+
 static void SendData()
 {
   Motion_Data motion;
@@ -89,6 +130,25 @@ static void SendData()
   Motion_GetReadings(&motion);
   Comms_SendData(&motion,&fingers);
   Fingers_FinishReadings(&fingers,&adc);
+  DrawData(&motion,&fingers);
+}
+
+static void InitDisplay()
+{
+  int cW = Display_GetCellWidth();
+  int cH = Display_GetCellHeight();
+  int row = 0;
+  Display_DrawString(0,cH*(row++),"GloVR v0.1",0xFFFF,0x0000,1);
+  Display_DrawString(0,cH*(row++),"Yaw   :",0xFFFF,0x0000,1);
+  Display_DrawString(0,cH*(row++),"Pitch :",0xFFFF,0x0000,1);
+  Display_DrawString(0,cH*(row++),"Roll  :",0xFFFF,0x0000,1);
+  row++;
+  Display_DrawString(0,cH*(row++),"dYaw  :",0xFFFF,0x0000,1);
+  Display_DrawString(0,cH*(row++),"dPitch:",0xFFFF,0x0000,1);
+  Display_DrawString(0,cH*(row++),"dRoll :",0xFFFF,0x0000,1);
+  row++;
+  Display_DrawString(0,cH*(row++),"Thumb :",0xFFFF,0x0000,1);
+  Display_DrawString(0,cH*(row++),"Index :",0xFFFF,0x0000,1);
 }
 
 static void InitializeHardware(void)
@@ -96,8 +156,10 @@ static void InitializeHardware(void)
   Hardware_Init();
   Time_Init();
   Display_Init();
+  InitDisplay();
   Motion_Init();
   Fingers_Init();
+  Comms_Init();
   Timer0_Init(&periodicTimerTask,80000,2);
 }
 

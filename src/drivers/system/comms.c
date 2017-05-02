@@ -1,5 +1,11 @@
 #include <drivers/system/comms.h>
+#include <drivers/tm4c/UART.h>
 #include <stdio.h>
+
+void Comms_Init()
+{
+  UART1_Init(BAUD_115200);
+}
 
 static void send(const char * buffer, int length)
 {

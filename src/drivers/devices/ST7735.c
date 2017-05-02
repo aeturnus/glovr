@@ -727,6 +727,15 @@ void static commonInit(const uint8_t *cmdList) {
   Delay1ms(500);
   RESET = RESET_HIGH;
   Delay1ms(500);
+    
+  // initialize backlite
+  SYSCTL_RCGCGPIO_R |= 0x04;
+  GPIO_PORTC_AFSEL_R &= ~0x10;
+  GPIO_PORTC_DEN_R  |= 0x10;
+  GPIO_PORTC_AMSEL_R  &= ~0x10;
+  GPIO_PORTC_PCTL_R &= ~0xF0000;
+  GPIO_PORTC_DIR_R |= 0x10;
+  GPIO_PORTC_DATA_R |= 0x10;
 
   // initialize SSI0
   GPIO_PORTA_AFSEL_R |= 0x2C;           // enable alt funct on PA2,3,5

@@ -7,19 +7,20 @@ void Display_Init(void)
 {
   ST7735_InitR(INITR_REDTAB);
   ST7735_FillRect(0,0,ST7735_TFTWIDTH,ST7735_TFTHEIGHT,0x0000);
+  ST7735_SetRotation(1);
 }
 
-#define DISPLAY_HEIGHT ST7735_TFTHEIGHT
-#define DISPLAY_WIDTH  ST7735_TFTWIDTH
+#define DISPLAY_HEIGHT ST7735_TFTWIDTH
+#define DISPLAY_WIDTH  ST7735_TFTHEIGHT
 
 unsigned int Display_GetWidth(void)
 {
-  return ST7735_TFTWIDTH;
+  return DISPLAY_WIDTH;
 }
 
 unsigned int Display_GetHeight(void)
 {
-  return ST7735_TFTHEIGHT;
+  return DISPLAY_HEIGHT;
 }
 
 void Display_DrawPixel( unsigned int x, unsigned int y, uint32_t color )
