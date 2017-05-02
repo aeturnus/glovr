@@ -5,7 +5,7 @@ static void send(const char * buffer, int length)
 {
   for(int i = length; i > 0; --i)
   {
-    fputc(stdout,*buffer);
+    fputc(*buffer,stdout);
     ++buffer;
   }
 }
@@ -17,14 +17,14 @@ const char header[] = {0x94, 0x26, 0xae, 0x78, 0x4d, 0xf6, 0x95, 0x05};
  * Header - Orr[3] - Fingers[6]
  * 8 - 12 - 6
  */
-#define DATA_SIZE
+#define DATA_SIZE 18
 void Comms_SendData(Motion_Data * motion, Fingers * fingers)
 {
   static char sendBuffer[128];
   int length;
 
   int32_t orr[3];
-  orr[0] = motion.yaw; orr[1] = motion.pitch; orr[2] = motion.roll;
+  orr[0] = motion->yaw; orr[1] = motion->pitch; orr[2] = motion->roll;
 
   void * buff = sendBuffer;
   for(int i = 0; i < 3; i++)
@@ -47,5 +47,5 @@ void Comms_SendData(Motion_Data * motion, Fingers * fingers)
 
   // send our header and data off
   send(header,sizeof(header));
-  send(sendBuffer,length)
+  send(sendBuffer,DATA_SIZE);
 }
