@@ -6,54 +6,117 @@
 
 #include <xdo.h>
 
+#define YAW_THRESH 10000
+#define PITCH_THRESH 10000
+#define ROLL_THRESH 10000
 static xdo_t * x;
 void parse(const uint8_t * buffer)
 {
-  int32_t pos[3];
   int32_t orr[3];
-  int8_t fing[6];
+  int32_t dorr[3];
+  int8_t fing[2];
   int index = 0;
-  for(int i = 0; i < 3; i++)
-  {
-    pos[i] = *(int32_t *)(&buffer[index]);
-    index += sizeof(int32_t);
-  }
   for(int i = 0; i < 3; i++)
   {
     orr[i] = *(int32_t *)(&buffer[index]);
     index += sizeof(int32_t);
   }
-  for(int i = 0; i < 6; i++)
+  for(int i = 0; i < 3; i++)
+  {
+    dorr[i] = *(int32_t *)(&buffer[index]);
+    index += sizeof(int32_t);
+  }
+  for(int i = 0; i < 2; i++)
   {
     fing[i] = *(int8_t *)(&buffer[index]);
     index += sizeof(int8_t);
   }
   static int num = 0;
   //orr[0] = -50000;
-  printf("Yaw: %d, Pitch: %d, Roll %d\n",orr[0],orr[1],orr[2]);
-  if(orr[0] < -15000)
+  printf("Yaw: %d, Pitch: %d, Roll %d, Thumb: %d, Index: %d\n",orr[0],orr[1],orr[2],fing[0],fing[1]);
+  ///*
+  if(orr[2] < -PITCH_THRESH || dorr[2] < -300)
   {
     printf("[%d] Left turn! (%d)\n",num++,orr[2]);
     xdo_send_keysequence_window_down(x,CURRENTWINDOW,"Left",0);
-    //xdo_move_mouse_relative_to_window(x,-100,0,CURRENTWINDOW);
   }
   else
   {
     xdo_send_keysequence_window_up(x,CURRENTWINDOW,"Left",0);
   }
 
-  if(orr[0] > 15000)
+  if(orr[2] > PITCH_THRESH || dorr[2] > 300)
   {
     printf("[%d] Right turn! (%d)\n",num++,orr[2]);
     xdo_send_keysequence_window_down(x,CURRENTWINDOW,"Right",0);
-    //xdo_move_mouse_relative_to_window(x,100,0,CURRENTWINDOW);
   }
   else
   {
     xdo_send_keysequence_window_up(x,CURRENTWINDOW,"Right",0);
   }
+
+  if(orr[1] < -PITCH_THRESH || dorr[1] < -300)
+  {
+    printf("[%d] Foward! (%d)\n",num++,orr[1]);
+    xdo_send_keysequence_window_down(x,CURRENTWINDOW,"Up",0);
+  }
+  else
+  {
+    xdo_send_keysequence_window_up(x,CURRENTWINDOW,"Up",0);
+  }
+
+  if(orr[1] > PITCH_THRESH || dorr[1] > 300)
+  {
+    printf("[%d] Back! (%d)\n",num++,orr[1]);
+    xdo_send_keysequence_window_down(x,CURRENTWINDOW,"Down",0);
+  }
+  else
+  {
+    xdo_send_keysequence_window_up(x,CURRENTWINDOW,"Down",0);
+  }
+
+  if(fing[1] > 80)
+  {
+    printf("[%d] Pew pew! (%d)\n",num++,fing[1]);
+    xdo_send_keysequence_window_down(x,CURRENTWINDOW,"Ctrl",0);
+  }
+  else
+  {
+    xdo_send_keysequence_window_up(x,CURRENTWINDOW,"Ctrl",0);
+  }
+
+  if(fing[0] > 80)
+  {
+    printf("[%d] Unf! (%d)\n",num++,fing[0]);
+    xdo_send_keysequence_window_down(x,CURRENTWINDOW,"Spacebar",0);
+  }
+  else
+  {
+    xdo_send_keysequence_window_up(x,CURRENTWINDOW,"Spacebar",0);
+  }
+  //*/
 }
 
+const char header[] = {0x94, 0x26, 0xae, 0x78, 0x4d, 0xf6, 0x95, 0x05};
+void waitForCommand(FILE * fp)
+{
+  static char history[8];
+  static char buffer[26];
+  char c; size_t read;
+  if(!memcmp(header,history,sizeof(header)))
+  {
+    //printf("Success!\n");
+    read = fread(buffer, 1, sizeof(buffer), fp);
+    parse((uint8_t *)buffer);
+  }
+  read = fread(&c, 1, sizeof(char), fp);
+  for(int i = 0; i < 7; i++)
+  {
+    history[i] = history[i+1];
+  }
+  history[7] = c;
+
+}
 
 int main(int argc, char * argv[])
 {
@@ -80,12 +143,12 @@ int main(int argc, char * argv[])
   }
   setvbuf(fp, 0x0,_IONBF, 0);
 
-  char buffer[30];
   while(1)
   {
     fflush(fp);
-    size_t read = fread(buffer, 1, sizeof(buffer), fp);
-    parse((uint8_t *)buffer);
+    waitForCommand(fp);
+    //size_t read = fread(buffer, 1, sizeof(buffer), fp);
+    //parse((uint8_t *)buffer);
   }
 
   fclose(fp);
