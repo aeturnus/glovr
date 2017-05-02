@@ -18,10 +18,10 @@ void printData(void)
   ADC_Data adc;
   Switch_State switches[3];
   //Finger_GetReadings(&fingers);
-  Finger_BeginReadings(&fingers, &adc);
+  Fingers_BeginReadings(&fingers, &adc);
   Motion_GetReadings(&motion);
   Switch_GetStates(switches);
-  while(Finger_FinishReadings(&fingers, &adc)){};
+  while(Fingers_FinishReadings(&fingers, &adc)){};
   
   int32_t pos[3], orr[3];
   int8_t fing[6];
@@ -29,7 +29,8 @@ void printData(void)
   orr[0] = motion.yaw; orr[1] = motion.roll; orr[2] = motion.pitch; 
   fing[0] = fingers.extend[0]; fing[1] = fingers.extend[1]; fing[2] = fingers.extend[2];
   fing[3] = fingers.extend[3]; fing[4] = fingers.extend[4]; fing[5] = fingers.abduct[0]; 
-    
+  
+  /*
   void * buffer = sendBuffer;
   for(int i = 0; i < 3; i++)
   {
@@ -50,9 +51,9 @@ void printData(void)
   {
     fputc(sendBuffer[i]&0xFF,stdout);
   }
-  
+  */
     
-  //printf("Roll: %d, Pitch: %d, Yaw: %d, Finger: %d\r\n",motion.roll,motion.pitch,motion.yaw, fingers.extend[0]);
+  printf("Roll: %d, Pitch: %d, Yaw: %d, Finger: %d\r\n",motion.roll,motion.pitch,motion.yaw, fingers.extend[0]);
   
 }
 
@@ -64,7 +65,7 @@ int main(void)
   UART1_Init(BAUD_115200);
   ADC_Init();
   Motion_Init();
-  Finger_Init();
+  Fingers_Init();
   /*
   printf("Press to tare extension...\r\n");
   fgetc(0);

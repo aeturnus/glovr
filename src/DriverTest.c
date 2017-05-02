@@ -7,6 +7,7 @@
 #include <drivers/devices/nRF24L01p_mbed.h>
 #include <drivers/system/time.h>
 #include <drivers/system/switch.h>
+#include <drivers/system/display.h>
 #include <drivers/devices/MPU9250.h>
 
 
@@ -34,8 +35,10 @@ int main(void)
   Switch_Init();
   UART1_Init(BAUD_115200);
   ADC_Init();
+  Display_Init();
   MPU_Init();
-  
+  //Display_DrawString(0,0,0,0,"Hello world!",1);
+  Display_DrawString(0,0,"Hello world!",0xFFFF,0x0000,1);
   while(1)
   {
     puts("Press any key to get data\r\n");
