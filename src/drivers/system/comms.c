@@ -21,9 +21,9 @@ const char header[] = {0x94, 0x26, 0xae, 0x78, 0x4d, 0xf6, 0x95, 0x05};
 /*
  * Data format:
  * Header - Orr[3] - dOrr[3] - Fingers[2] (thumb, index)
- * 8 - 12 - 12 - 6
+ * 8 - 12 - 12 - 2
  */
-#define DATA_SIZE 30
+#define DATA_SIZE 26
 void Comms_SendData(Motion_Data * motion, Fingers * fingers)
 {
   static char sendBuffer[128];
