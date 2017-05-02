@@ -20,36 +20,37 @@ static void send(const char * buffer, int length)
 const char header[] = {0x94, 0x26, 0xae, 0x78, 0x4d, 0xf6, 0x95, 0x05};
 /*
  * Data format:
- * Header - Orr[3] - Fingers[6]
- * 8 - 12 - 6
+ * Header - Orr[3] - dOrr[3] - Fingers[2] (thumb, index)
+ * 8 - 12 - 12 - 6
  */
-#define DATA_SIZE 18
+#define DATA_SIZE 30
 void Comms_SendData(Motion_Data * motion, Fingers * fingers)
 {
   static char sendBuffer[128];
   int length;
 
   int32_t orr[3];
+  
   orr[0] = motion->yaw; orr[1] = motion->pitch; orr[2] = motion->roll;
-
   void * buff = sendBuffer;
   for(int i = 0; i < 3; i++)
   {
     *(int32_t *)buff = orr[i];
     buff = ((char *)buff) + sizeof(int32_t);
   }
-
-  for(int i = 0; i < NUM_EXTEND; i++)
+  
+  orr[0] = motion->dyaw; orr[1] = motion->dpitch; orr[2] = motion->droll;
+  for(int i = 0; i < 3; i++)
   {
-    *(int8_t *)buff = fingers->extend[i];
-    buff = ((char *)buff) + sizeof(int8_t);
+    *(int32_t *)buff = orr[i];
+    buff = ((char *)buff) + sizeof(int32_t);
   }
 
-  for(int i = 0; i < NUM_ABDUCT; i++)
-  {
-    *(int8_t *)buff = fingers->abduct[i];
-    buff = ((char *)buff) + sizeof(int8_t);
-  }
+  *(int8_t *)buff = fingers->extend[Finger_Thumb];
+  buff = ((char *)buff) + sizeof(int8_t);
+  *(int8_t *)buff = fingers->extend[Finger_Index];
+  buff = ((char *)buff) + sizeof(int8_t);
+
 
   // send our header and data off
   send(header,sizeof(header));
