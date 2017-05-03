@@ -7,15 +7,15 @@
 
 #include <xdo.h>
 
-#define FORWARD_KEY   "W"
-#define BACKWARD_KEY  "S"
-#define T_LEFT_KEY    "A"
-#define T_RIGHT_KEY   "D"
-#define S_LEFT_KEY    "J"
-#define S_RIGHT_KEY   "L"
-#define NEXT_WEAP_KEY "I"
+#define FORWARD_KEY   "w"
+#define BACKWARD_KEY  "s"
+#define T_LEFT_KEY    "a"
+#define T_RIGHT_KEY   "d"
+#define S_LEFT_KEY    "j"
+#define S_RIGHT_KEY   "l"
+#define NEXT_WEAP_KEY "i"
 #define FIRE_KEY      "space"
-#define USE_KEY       "K"
+#define USE_KEY       "k"
 
 #define DEBUG_ENABLED
 
@@ -63,6 +63,7 @@ static void clearKeys()
   for(int i=Ctrl_Num-1;i >= 0; --i)
   {
     ctrlStatus[i] = 0;
+    xdo_send_keysequence_window_up(x,CURRENTWINDOW,keys[i],0);
   }
 }
 
@@ -106,7 +107,11 @@ typedef struct CtrlStatus_Str
 } CtrlStatus;
 
 #define ROT_THRESH 1250
-#define MOV_TIME 2 // samples
+#define FWD_THRESH 750
+#define BCK_THRESH -1500
+#define RGT_THRESH 750
+#define LFT_THRESH -1500
+#define MOV_TIME 5 // samples
 void actOnData(const RecvData * data, CtrlStatus * status)
 {
   DEBUG("atReady: %d, interact: %d, move: %d (%d), turn: %d (%d)\n",status->isAtReady,status->isInteract,status->move, status->moveTimeout,status->turn, status->turnTimeout);
@@ -143,7 +148,8 @@ void actOnData(const RecvData * data, CtrlStatus * status)
     }
   }
 
-  if(status->isAtReady)
+  //if(status->isAtReady)
+  if(1)
   {
     if(data->fing[1] > 70)
     {
@@ -154,10 +160,18 @@ void actOnData(const RecvData * data, CtrlStatus * status)
       clrKey(Ctrl_Fire);
     }
 
+    if( !(75000 < data->orr[ROLL] && data->orr[ROLL] < 105000) )
+    {
+      status->isInteract = 0;
+      status->isAtReady  = 0;
+      clearKeys();
+      status->move = 0; status->turn = 0;
+    }
+
     switch(status->move)
     {
     case -1:
-      if(data->dorr[YAW] > ROT_THRESH )
+      if(data->dorr[YAW] > FWD_THRESH )
       {
         if(status->moveTimeout > MOV_TIME)
         {
@@ -172,7 +186,7 @@ void actOnData(const RecvData * data, CtrlStatus * status)
       }
       break;
     case 0:
-      if(data->dorr[YAW] > ROT_THRESH )
+      if(data->dorr[YAW] > FWD_THRESH )
       {
         if(status->moveTimeout > MOV_TIME)
         {
@@ -181,7 +195,7 @@ void actOnData(const RecvData * data, CtrlStatus * status)
           setKey(Ctrl_Forward);
         }
       }
-      else if(data->dorr[YAW] < -ROT_THRESH )
+      else if(data->dorr[YAW] < BCK_THRESH )
       {
         if(status->moveTimeout > MOV_TIME)
         {
@@ -196,7 +210,7 @@ void actOnData(const RecvData * data, CtrlStatus * status)
       }
       break;
     case 1:
-      if(data->dorr[YAW] < -ROT_THRESH )
+      if(data->dorr[YAW] < BCK_THRESH )
       {
         if(status->moveTimeout > MOV_TIME)
         {
@@ -214,64 +228,87 @@ void actOnData(const RecvData * data, CtrlStatus * status)
       break;
     }
 
-    switch(status->turn)
+    if(20000 < data->orr[PITCH] && data->orr[PITCH] < 50000)
     {
-    case -1:
-      if(data->dorr[PITCH] > ROT_THRESH )
+      status->turn = 0;
+      status->turnTimeout = 0;
+      clrKey(Ctrl_TurnLeft);
+      clrKey(Ctrl_TurnRight);
+    }
+    else if(data->orr[PITCH] < 20000)
+    {
+      status->turn = -1;
+      status->turnTimeout = 0;
+      setKey(Ctrl_TurnLeft);
+      clrKey(Ctrl_TurnRight);
+    }
+    else if(data->orr[PITCH] > 50000)
+    {
+      status->turn = 1;
+      status->turnTimeout = 0;
+      clrKey(Ctrl_TurnLeft);
+      setKey(Ctrl_TurnRight);
+    }
+    {
+      switch(status->turn)
       {
-        if(status->turnTimeout > MOV_TIME)
+      case -1:
+        if(data->dorr[PITCH] > RGT_THRESH)
         {
-          status->turnTimeout = 0;
-          status->turn = 0;
-          clrKey(Ctrl_TurnLeft);
+          if(status->turnTimeout > MOV_TIME)
+          {
+            status->turnTimeout = 0;
+            status->turn = 0;
+            clrKey(Ctrl_TurnLeft);
+          }
         }
-      }
-      else
-      {
-        setKey(Ctrl_TurnLeft);
-      }
-      break;
-    case 0:
-      if(data->dorr[PITCH] > ROT_THRESH )
-      {
-        if(status->turnTimeout > MOV_TIME)
+        else
         {
-          status->turnTimeout = 0;
-          status->turn = 1;
-          setKey(Ctrl_TurnRight);
-        }
-      }
-      else if(data->dorr[PITCH] < -ROT_THRESH )
-      {
-        if(status->turnTimeout > MOV_TIME)
-        {
-          status->turnTimeout = 0;
-          status->turn = -1;
           setKey(Ctrl_TurnLeft);
         }
-      }
-      else
-      {
-        clrKey(Ctrl_TurnLeft); clrKey(Ctrl_TurnRight);
-      }
-      break;
-    case 1:
-      if(data->dorr[PITCH] < -ROT_THRESH )
-      {
-        if(status->turnTimeout > MOV_TIME)
+        break;
+      case 0:
+        if(data->dorr[PITCH] > RGT_THRESH )
         {
-          status->turnTimeout = 0;
-          status->turn = 0;
-          clrKey(Ctrl_TurnRight);
+          if(status->turnTimeout > MOV_TIME)
+          {
+            status->turnTimeout = 0;
+            status->turn = 1;
+            setKey(Ctrl_TurnRight);
+          }
         }
+        else if(data->dorr[PITCH] < LFT_THRESH )
+        {
+          if(status->turnTimeout > MOV_TIME)
+          {
+            status->turnTimeout = 0;
+            status->turn = -1;
+            setKey(Ctrl_TurnLeft);
+          }
+        }
+        else
+        {
+          clrKey(Ctrl_TurnLeft); clrKey(Ctrl_TurnRight);
+        }
+        break;
+      case 1:
+        if(data->dorr[PITCH] < LFT_THRESH )
+        {
+          if(status->turnTimeout > MOV_TIME)
+          {
+            status->turnTimeout = 0;
+            status->turn = 0;
+            clrKey(Ctrl_TurnRight);
+          }
+        }
+        else
+        {
+          setKey(Ctrl_TurnRight);
+        }
+        break;
+      default:
+        break;
       }
-      else
-      {
-        setKey(Ctrl_TurnRight);
-      }
-      break;
-    default:
-      break;
     }
   }
 }
@@ -296,7 +333,6 @@ void parse(const uint8_t * buffer)
     data.fing[i] = *(int8_t *)(&buffer[index]);
     index += sizeof(int8_t);
   }
-
   actOnData(&data,&status);
 }
 
