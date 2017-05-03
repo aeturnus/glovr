@@ -10,4 +10,4 @@ clean:
 	rm $(EXECUTABLE)
 
 run:
-	./a.out $(TTY)
+	./$(EXECUTABLE) $(TTY)
