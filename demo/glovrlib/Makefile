@@ -9,5 +9,8 @@ debug:
 clean:
 	rm $(EXECUTABLE)
 
+cheap:
+	gcc -g doom_cheap.c -lxdo -o $(EXECUTABLE)
+
 run:
 	./$(EXECUTABLE) $(TTY)
