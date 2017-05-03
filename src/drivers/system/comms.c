@@ -16,8 +16,9 @@ static void send(const char * buffer, int length)
   }
 }
 
-// random header
-const char header[] = {0x94, 0x26, 0xae, 0x78, 0x4d, 0xf6, 0x95, 0x05};
+// variations of a random header
+const char dataHeader[] = {0x94, 0x26, 0xae, 0x78, 0x4d, 0xf6, 0x95, 0x05};
+const char offHeader[] = {0x95, 0x27, 0xaf, 0x79, 0x4e, 0xf7, 0x96, 0x06};
 /*
  * Data format:
  * Header - Orr[3] - dOrr[3] - Fingers[2] (thumb, index)
@@ -53,6 +54,11 @@ void Comms_SendData(Motion_Data * motion, Fingers * fingers)
 
 
   // send our header and data off
-  send(header,sizeof(header));
+  send(dataHeader,sizeof(dataHeader));
   send(sendBuffer,DATA_SIZE);
+}
+
+void Comms_SendOff(void)
+{
+  send(offHeader,sizeof(offHeader));
 }

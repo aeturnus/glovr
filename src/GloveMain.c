@@ -30,6 +30,10 @@ static void clrSent()
   EnableInterrupts();
 }
 
+#define DISABLED 0
+#define ENABLED  1
+
+
 #define PERIOD_MS 100
 static void periodicTimerTask()
 {
@@ -61,24 +65,15 @@ static void ProcessInput()
   {
     switch(state)
     {
-    case 0:
-      Display_DrawString(0,cH*11,"Disabled",DISABLED_FG,0x0000,1);
-      state++;
-      break;
-    case 1:
+    case DISABLED:
       Display_DrawString(0,cH*11,"Enabled ",ENABLED_FG,0x0000,1);
-      state = 0;
+      state = ENABLED;
       break;
-    /*
-    case 2:
-      Fingers_TareAbduct();
-      state++;
+    case ENABLED:
+      Display_DrawString(0,cH*11,"Disabled",DISABLED_FG,0x0000,1);      
+      state = DISABLED;
+      Comms_SendOff();
       break;
-    case 3:
-      Fingers_TareAdduct();
-      state = 0;
-      break;
-    */
     }
   }
 }
@@ -133,7 +128,7 @@ static void SendData()
   Fingers_BeginReadings(&fingers,&adc);
   Motion_GetReadings(&motion);
   Fingers_FinishReadings(&fingers,&adc);
-  if(state == 0)
+  if(state == ENABLED)
     Comms_SendData(&motion,&fingers);
   DrawData(&motion,&fingers);
 }
@@ -155,7 +150,7 @@ static void InitDisplay()
   Display_DrawString(0,cH*(row++),"Thumb :",0xFFFF,0x0000,1);
   Display_DrawString(0,cH*(row++),"Index :",0xFFFF,0x0000,1);
   
-  Display_DrawString(0,cH*11,"Enabled ",ENABLED_FG,0x0000,1);
+  Display_DrawString(0,cH*11,"Disabled ",DISABLED_FG,0x0000,1);
 }
 
 static void InitializeHardware(void)
