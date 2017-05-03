@@ -18,3 +18,4 @@ bin
 *.elf
 *.swo
 *.swp
+*.out

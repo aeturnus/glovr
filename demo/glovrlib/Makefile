@@ -1,8 +1,13 @@
+EXECUTABLE=doom_hand.elf
+TTY=/dev/ttyUSB0
 all:
-	gcc -g -lxdo keyboard.c
+	gcc -g doom.c -lxdo -o $(EXECUTABLE)
 
 debug:
-	gdb --args a.out /dev/ttyUSB0
+	gdb --args $(EXECUTABLE) $(TTY)
+
+clean:
+	rm $(EXECUTABLE)
 
 run:
-	./a.out /dev/ttyUSB0
+	./a.out $(TTY)

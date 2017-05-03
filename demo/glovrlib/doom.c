@@ -3,8 +3,17 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <xdo.h>
+
+#define FORWARD   "W"
+#define BACKWARD  "S"
+#define T_LEFT    "A"
+#define T_RIGHT   "D"
+#define NEXT_WEAP "I"
+#define FIRE      "space"
+#define USE       "K"
 
 #define YAW_THRESH 10000
 #define PITCH_THRESH 10000
@@ -34,67 +43,65 @@ void parse(const uint8_t * buffer)
   static int num = 0;
   //orr[0] = -50000;
   printf("Yaw: %d, Pitch: %d, Roll %d, Thumb: %d, Index: %d\n",orr[0],orr[1],orr[2],fing[0],fing[1]);
-  ///*
   if(orr[2] < -PITCH_THRESH || dorr[2] < -300)
   {
     printf("[%d] Left turn! (%d)\n",num++,orr[2]);
-    xdo_send_keysequence_window_down(x,CURRENTWINDOW,"Left",0);
+    xdo_send_keysequence_window_down(x,CURRENTWINDOW,T_LEFT,0);
   }
   else
   {
-    xdo_send_keysequence_window_up(x,CURRENTWINDOW,"Left",0);
+    xdo_send_keysequence_window_up(x,CURRENTWINDOW,T_LEFT,0);
   }
 
   if(orr[2] > PITCH_THRESH || dorr[2] > 300)
   {
     printf("[%d] Right turn! (%d)\n",num++,orr[2]);
-    xdo_send_keysequence_window_down(x,CURRENTWINDOW,"Right",0);
+    xdo_send_keysequence_window_down(x,CURRENTWINDOW,T_RIGHT,0);
   }
   else
   {
-    xdo_send_keysequence_window_up(x,CURRENTWINDOW,"Right",0);
+    xdo_send_keysequence_window_up(x,CURRENTWINDOW,T_RIGHT,0);
   }
 
   if(orr[1] < -PITCH_THRESH || dorr[1] < -300)
   {
-    printf("[%d] Foward! (%d)\n",num++,orr[1]);
-    xdo_send_keysequence_window_down(x,CURRENTWINDOW,"Up",0);
+    printf("[%d] Forward! (%d)\n",num++,orr[1]);
+    xdo_send_keysequence_window_down(x,CURRENTWINDOW,FORWARD,0);
   }
   else
   {
-    xdo_send_keysequence_window_up(x,CURRENTWINDOW,"Up",0);
+    xdo_send_keysequence_window_up(x,CURRENTWINDOW,FORWARD,0);
   }
 
   if(orr[1] > PITCH_THRESH || dorr[1] > 300)
   {
     printf("[%d] Back! (%d)\n",num++,orr[1]);
-    xdo_send_keysequence_window_down(x,CURRENTWINDOW,"Down",0);
+    xdo_send_keysequence_window_down(x,CURRENTWINDOW,BACKWARD,0);
   }
   else
   {
-    xdo_send_keysequence_window_up(x,CURRENTWINDOW,"Down",0);
+    xdo_send_keysequence_window_up(x,CURRENTWINDOW,BACKWARD,0);
   }
 
-  if(fing[1] > 80)
+  if(fing[1] > 70)
   {
     printf("[%d] Pew pew! (%d)\n",num++,fing[1]);
-    xdo_send_keysequence_window_down(x,CURRENTWINDOW,"Ctrl",0);
+    xdo_send_keysequence_window_down(x,CURRENTWINDOW,FIRE,0);
   }
   else
   {
-    xdo_send_keysequence_window_up(x,CURRENTWINDOW,"Ctrl",0);
+    xdo_send_keysequence_window_up(x,CURRENTWINDOW,FIRE,0);
   }
 
-  if(fing[0] > 80)
+  if(fing[0] > 50)
   {
     printf("[%d] Unf! (%d)\n",num++,fing[0]);
-    xdo_send_keysequence_window_down(x,CURRENTWINDOW,"Spacebar",0);
+    xdo_send_keysequence_window_down(x,CURRENTWINDOW,USE,0);
   }
   else
   {
-    xdo_send_keysequence_window_up(x,CURRENTWINDOW,"Spacebar",0);
+    xdo_send_keysequence_window_up(x,CURRENTWINDOW,USE,0);
   }
-  //*/
 }
 
 const char header[] = {0x94, 0x26, 0xae, 0x78, 0x4d, 0xf6, 0x95, 0x05};
